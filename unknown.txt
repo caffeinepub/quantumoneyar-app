@@ -1,0 +1,82 @@
+
+### Fluxos Detalhados
+- **Login**: Internet Identity → Autenticação → Acesso ao Jogo
+- **Coleta**: GPS → AR → Interação → Validação → Crédito QMY
+- **Governança**: Proposta → Votação DAO → Execução → Atualização Sistema
+- **Transações**: Ação → Canister → Ledger → Confirmação → Interface
+
+### Módulos e Conexões Seguras
+- **Internet Identity**: Sistema de autenticação descentralizada
+- **ICP Ledger Calls**: Transações seguras de tokens
+- **Canister-to-Canister**: Comunicação entre canisters do sistema
+- **HTTPS/WSS**: Conexões seguras entre app e blockchain
+
+## MVP - Funcionalidades Mínimas
+
+### Autenticação e Acesso
+- Login seguro com Internet Identity
+- Criação automática de perfil de jogador
+- Recuperação de sessão
+
+### Experiência de Jogo Core
+- Mapa interativo com GPS em tempo real
+- Spots AR visíveis baseados em localização
+- Sistema de coleta de QMY com base em XP e raio de ação
+- Mecânica de XP e progressão de nível
+- Sistema de energia com regeneração temporal
+
+### Interface e Feedback
+- HUD exibindo XP atual, saldo QMY e energia disponível
+- Notificações de coleta e progressão
+- Inventário básico de itens coletados
+
+### Segurança e Validação
+- Anti-spoofing GPS básico com validação Haversine
+- Limites de coleta por localização e tempo
+- Validação de transações no Canister Principal
+
+### Sincronização Blockchain
+- Armazenamento on-chain de estado do jogador
+- Sincronização automática entre app e Canister
+- Backup e recuperação de progresso
+
+## Dados Armazenados no Backend
+
+### Perfis de Jogador
+- Identificação única via Internet Identity
+- Nível de XP e progressão
+- Saldo de tokens QMY
+- Energia atual e timestamp de regeneração
+- Histórico de coletas e localizações
+
+### Configurações do Jogo
+- Spots de coleta e suas coordenadas
+- Regras de distribuição de QMY
+- Parâmetros de validação antifraude
+- Configurações de energia e XP
+
+### Dados de Governança
+- Propostas ativas e históricas
+- Votos e participação da comunidade
+- Estado da tesouraria
+- Configurações de staking e recompensas
+
+## Operações Backend Principais
+
+### Gestão de Jogador
+- Criação e atualização de perfis
+- Validação de ações e localização
+- Cálculo de recompensas e XP
+- Controle de energia e cooldowns
+
+### Processamento de Coletas
+- Validação de proximidade GPS
+- Verificação de disponibilidade de energia
+- Cálculo de QMY baseado em XP
+- Atualização de saldos e inventário
+
+### Governança e DAO
+- Processamento de propostas
+- Contabilização de votos
+- Execução de decisões aprovadas
+- Gestão da tesouraria comunitária

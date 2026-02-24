@@ -1,0 +1,51 @@
+{
+  "name": "Quantumoney AR",
+  "short_name": "QMY AR",
+  "description": "Augmented Reality game for collecting QMY coins and creatures",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#FFD700",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/generated/pwa-icon-512.dim_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "AR Camera",
+      "short_name": "Camera",
+      "description": "Open AR Camera",
+      "url": "/ar",
+      "icons": [
+        {
+          "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "short_name": "Profile",
+      "description": "View Profile",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

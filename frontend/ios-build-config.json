@@ -1,0 +1,62 @@
+{
+  "projectName": "Quantumoney AR",
+  "bundleIdentifier": "app.quantumoneyar.qmy",
+  "versionName": "1.0.0",
+  "versionCode": "200",
+  "buildNumber": "200",
+  "deploymentTarget": "14.0",
+  "swiftVersion": "5.0",
+  "teamId": "REPLACE_WITH_YOUR_TEAM_ID",
+  "provisioningProfile": "REPLACE_WITH_PROVISIONING_PROFILE_NAME",
+  "codeSignIdentity": "iPhone Distribution",
+  "permissions": {
+    "NSCameraUsageDescription": "Quantumoney AR precisa acessar a câmera para funcionalidade de realidade aumentada",
+    "NSLocationWhenInUseUsageDescription": "Quantumoney AR precisa acessar sua localização para encontrar moedas QMY próximas",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "Quantumoney AR precisa acessar sua localização para gameplay baseado em localização",
+    "NSPhotoLibraryUsageDescription": "Quantumoney AR precisa acessar sua biblioteca de fotos para salvar capturas de tela",
+    "NSPhotoLibraryAddUsageDescription": "Quantumoney AR precisa salvar fotos na sua biblioteca"
+  },
+  "capabilities": [
+    "location",
+    "camera",
+    "push-notifications"
+  ],
+  "backgroundModes": [
+    "location"
+  ],
+  "deviceCapabilities": [
+    "armv7",
+    "location-services",
+    "gps"
+  ],
+  "appStoreMetadata": {
+    "name": "Quantumoney AR",
+    "subtitle": "Jogo AR de blockchain ICP",
+    "description": "Quantumoney AR é um jogo de realidade aumentada que integra tecnologia blockchain no Internet Computer Protocol (ICP). Colete moedas QMY, capture criaturas e participe da governança DAO.",
+    "keywords": "realidade aumentada, blockchain, criptomoeda, ICP, DAO, NFT, metaverso, jogo AR, QMY, Internet Computer",
+    "category": "GAME_ADVENTURE",
+    "secondaryCategory": "GAME_CASUAL",
+    "contentRating": "4+",
+    "privacyPolicyUrl": "https://quantumoney.app/privacy",
+    "websiteUrl": "https://quantumoney.app",
+    "supportUrl": "https://quantumoney.app/support",
+    "marketingUrl": "https://quantumoney.app"
+  },
+  "screenshots": {
+    "iPhone65": {
+      "size": "1290x2796",
+      "count": 5,
+      "description": "iPhone 14 Pro Max, 15 Pro Max screenshots"
+    },
+    "iPhone55": {
+      "size": "1242x2208",
+      "count": 5,
+      "description": "iPhone 8 Plus screenshots"
+    },
+    "iPadPro129": {
+      "size": "2048x2732",
+      "count": 5,
+      "description": "iPad Pro 12.9-inch screenshots"
+    }
+  }
+}

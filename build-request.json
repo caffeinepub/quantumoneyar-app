@@ -1,0 +1,119 @@
+{
+  "kind": "build_request",
+  "title": "Activate AR Lock/Unlock Buttons, Enable Monster Rescue, and Fix All Page Footers",
+  "projectName": "Quantumoney AR",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Activate the Lock and Unlock buttons in the AR camera view (CameraARActionBar) so that players can trigger lock and unlock coin interactions on visible AR spawn objects. The buttons must call the existing useLockCoin and useUnlockCoin mutations from useArActions.ts, passing the correct spawn/coin ID. Show loading states during the async call, and reflect the updated lock state on the overlay sprite via useArInteractions. On success, persist the new lock state via arInteractionsStore and sync the local mockGameplayState.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "activar os botões de bloquear e desbloquear que estão na AR para que o jogo fique jogável e se possa começar a bloquear e desbloquear moedas"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Tapping the Lock button on a visible AR coin triggers the lockCoin backend call and shows a loading indicator.",
+        "Tapping the Unlock button on a locked AR coin triggers the unlockCoin backend call and shows a loading indicator.",
+        "After a successful lock/unlock, the coin's overlay sprite updates to reflect the new lock state.",
+        "The lock state is persisted in arInteractionsStore (localStorage) immediately after the backend call succeeds.",
+        "Buttons are disabled (not hidden) when no eligible coin/monster is selected or in view."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Enable monster rescue in the AR camera view. When a monster spawn is visible and in range in the AR overlay, allow the player to interact with it (via the existing action bar or a dedicated 'Rescue' button) to capture/rescue the monster. On rescue, call the appropriate backend mutation, update the monster's captured state in mockGameplayState, and add a gameplay history event of type 'creature-capture' via useGameplayHistory. Show a SpawnCollectFX visual effect on successful rescue.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "resgatar monstros que estejam distribuídos e assinalados no mapa da aplicação"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When a monster spawn is visible in AR and within the player's XP-based tolerance radius, a rescue action is available in the AR action bar.",
+        "Tapping rescue triggers the backend capture mutation and a loading state.",
+        "On success, the monster is marked as captured in mockGameplayState and the overlay sprite reflects the captured state.",
+        "A SpawnCollectFX animation plays on successful monster rescue.",
+        "A 'creature-capture' gameplay history event is recorded via useGameplayHistory."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure the spawn markers displayed on the Leaflet map (/map/index.html and LeafletMapPage / MapMundoLeaflet components) reflect the current lock state and monster rescue state from localStorage (arInteractionsStore / mockGameplayState), so that coins and monsters already interacted with in AR are visually marked as locked/captured on the map.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "monstros que estejam distribuídos e assinalados no mapa da aplicação"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Locked coins appear with a distinct locked marker style on the Leaflet map.",
+        "Captured monsters appear with a distinct captured marker style on the Leaflet map.",
+        "Map markers update when the player returns to the map after AR interactions."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Move the footer visually higher on all pages throughout the application (including HUD, Profile, Map, AR, legal pages, and any other pages that have a footer) by reducing bottom padding/margin so the footer is closer to the last content section, without scrolling page content upward or changing page layout. The footer must remain at the bottom of its container but with less dead space below content.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Quero os rodapés das páginas todas mais acima",
+          "não quero subir as páginas mas sim subir os rodapés das páginas todas"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On all pages that render the Footer component, the footer appears closer to the page content with reduced bottom spacing.",
+        "No page content is shifted upward — only the footer's vertical position relative to content is adjusted.",
+        "The footer is consistently positioned across all pages (Home, Profile, Map, AR, legal pages)."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Remove all references to 'Caffeine' (including the word 'Caffeine', any 'Built with Caffeine', 'Powered by Caffeine', or similar attributions) from the footer component (Footer.tsx) and from any other footer or page-level attribution text across the entire application.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "não quero referências à Caffeine nem palavras Caffeine nos rodapés"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Footer component contains no text or links referencing 'Caffeine'.",
+        "No other page-level component renders any Caffeine attribution text.",
+        "The footer retains only the social media links and 'By HTgamers' attribution."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not change the backend schema or data model — only call existing backend endpoints for lock, unlock, and capture.",
+    "Do not scroll or shift page content upward when adjusting footer position — only reduce spacing around/above the footer.",
+    "Immutable frontend paths (hooks/useInternetIdentity.ts, hooks/useActor.ts, main.tsx, components/ui) must not be modified."
+  ],
+  "nonGoals": [
+    "Adding new backend canister methods beyond what already exists for lock/unlock/capture.",
+    "Implementing real-time WebSocket-based map updates.",
+    "Redesigning the AR camera UI beyond activating the existing buttons.",
+    "Adding new social media links to the footer.",
+    "Changing page layout, navigation, or scroll behaviour."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

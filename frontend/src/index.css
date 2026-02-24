@@ -1,0 +1,177 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* OKLCH Color System - Light Mode */
+    --background: oklch(100% 0 0);
+    --foreground: oklch(10% 0 0);
+    --card: oklch(100% 0 0);
+    --card-foreground: oklch(10% 0 0);
+    --popover: oklch(100% 0 0);
+    --popover-foreground: oklch(10% 0 0);
+    --primary: oklch(65% 0.2 45);
+    --primary-foreground: oklch(10% 0 0);
+    --secondary: oklch(95% 0.01 45);
+    --secondary-foreground: oklch(10% 0 0);
+    --muted: oklch(95% 0.01 45);
+    --muted-foreground: oklch(45% 0.01 45);
+    --accent: oklch(95% 0.01 45);
+    --accent-foreground: oklch(10% 0 0);
+    --destructive: oklch(55% 0.22 25);
+    --destructive-foreground: oklch(98% 0 0);
+    --border: oklch(90% 0.01 45);
+    --input: oklch(90% 0.01 45);
+    --ring: oklch(65% 0.2 45);
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* OKLCH Color System - Dark Mode */
+    --background: oklch(10% 0 0);
+    --foreground: oklch(98% 0 0);
+    --card: oklch(10% 0 0);
+    --card-foreground: oklch(98% 0 0);
+    --popover: oklch(10% 0 0);
+    --popover-foreground: oklch(98% 0 0);
+    --primary: oklch(65% 0.2 45);
+    --primary-foreground: oklch(10% 0 0);
+    --secondary: oklch(20% 0.01 45);
+    --secondary-foreground: oklch(98% 0 0);
+    --muted: oklch(20% 0.01 45);
+    --muted-foreground: oklch(65% 0.01 45);
+    --accent: oklch(20% 0.01 45);
+    --accent-foreground: oklch(98% 0 0);
+    --destructive: oklch(55% 0.22 25);
+    --destructive-foreground: oklch(98% 0 0);
+    --border: oklch(20% 0.01 45);
+    --input: oklch(20% 0.01 45);
+    --ring: oklch(65% 0.2 45);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* Mobile-first responsive utilities */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Full height layouts with proper footer visibility */
+  .min-h-screen-safe {
+    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .h-screen-safe {
+    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  /* Prevent horizontal overflow */
+  .overflow-x-hidden {
+    overflow-x: hidden;
+  }
+
+  /* Glass card with gold theme */
+  .glass-card-gold {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 1rem;
+  }
+
+  /* Mobile-specific typography adjustments */
+  @media (max-width: 640px) {
+    h1 {
+      @apply text-2xl;
+    }
+    
+    h2 {
+      @apply text-xl;
+    }
+    
+    h3 {
+      @apply text-lg;
+    }
+    
+    p {
+      @apply text-sm;
+    }
+  }
+
+  /* Ensure proper layout for flex containers */
+  .flex-col-full {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .flex-1-auto {
+    flex: 1 1 auto;
+    overflow-y: auto;
+  }
+}
+
+@layer utilities {
+  /* Responsive container utilities */
+  .container-safe {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  @media (min-width: 640px) {
+    .container-safe {
+      max-width: 640px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container-safe {
+      max-width: 768px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-safe {
+      max-width: 1024px;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .container-safe {
+      max-width: 1280px;
+    }
+  }
+}

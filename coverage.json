@@ -1,0 +1,82 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-24T22:58:23.216Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 5,
+    "implemented": 0,
+    "items": [
+      {
+        "id": "REQ-1",
+        "summary": "Activate the Lock and Unlock buttons in the AR camera view (CameraARActionBar) so that players can trigger lock and unlock coin interactions on visible AR spawn objects. The buttons must call the existing useLockCoin and useUnlockCoin mutations from useArActions.ts, passing the correct spawn/coin ID. Show loading states during the async call, and reflect the updated lock state on the overlay sprite via useArInteractions. On success, persist the new lock state via arInteractionsStore and sync the local mockGameplayState.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+          "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+          "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
+          "frontend/src/lib/arInteractionsStore.ts",
+          "frontend/src/lib/mockGameplayState.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Enable monster rescue in the AR camera view. When a monster spawn is visible and in range in the AR overlay, allow the player to interact with it (via the existing action bar or a dedicated 'Rescue' button) to capture/rescue the monster. On rescue, call the appropriate backend mutation, update the monster's captured state in mockGameplayState, and add a gameplay history event of type 'creature-capture' via useGameplayHistory. Show a SpawnCollectFX visual effect on successful rescue.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/hooks/useArActions.ts",
+          "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+          "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+          "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
+          "frontend/src/lib/mockGameplayState.ts",
+          "frontend/src/hooks/useArInteractions.ts"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Ensure the spawn markers displayed on the Leaflet map (/map/index.html and LeafletMapPage / MapMundoLeaflet components) reflect the current lock state and monster rescue state from localStorage (arInteractionsStore / mockGameplayState), so that coins and monsters already interacted with in AR are visually marked as locked/captured on the map.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/public/map/map.js",
+          "frontend/src/components/sections/LeafletMapPage.tsx",
+          "frontend/src/components/sections/MapMundoLeaflet.tsx"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Move the footer visually higher on all pages throughout the application (including HUD, Profile, Map, AR, legal pages, and any other pages that have a footer) by reducing bottom padding/margin so the footer is closer to the last content section, without scrolling page content upward or changing page layout. The footer must remain at the bottom of its container but with less dead space below content.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/Footer.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Remove all references to 'Caffeine' (including the word 'Caffeine', any 'Built with Caffeine', 'Powered by Caffeine', or similar attributions) from the footer component (Footer.tsx) and from any other footer or page-level attribution text across the entire application.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/components/Footer.tsx"
+        ],
+        "matchedFiles": []
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-implementation-plan.json",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}

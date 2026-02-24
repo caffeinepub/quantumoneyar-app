@@ -1,0 +1,156 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Activate AR Lock/Unlock Buttons, Enable Monster Rescue, and Fix All Page Footers",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Activate the Lock and Unlock buttons in the AR camera view so players can trigger lock and unlock coin interactions on visible AR spawn objects",
+      "acceptanceCriteria": [
+        "Tapping the Lock button on a visible AR coin triggers the lockCoin backend call and shows a loading indicator.",
+        "Tapping the Unlock button on a locked AR coin triggers the unlockCoin backend call and shows a loading indicator.",
+        "After a successful lock/unlock, the coin's overlay sprite updates to reflect the new lock state.",
+        "The lock state is persisted in arInteractionsStore (localStorage) immediately after the backend call succeeds.",
+        "Buttons are disabled (not hidden) when no eligible coin/monster is selected or in view."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+          "operation": "modify",
+          "description": "Wire the Lock and Unlock buttons to call useLockCoin and useUnlockCoin mutations from useArActions, passing the correct spawn/coin ID from the currently selected or nearest visible AR coin. Show loading states during the async call using the mutation's isLoading state. Disable buttons when no eligible coin is selected or visible. Ensure buttons call the backend mutations and handle success/error states with appropriate UI feedback."
+        },
+        {
+          "path": "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+          "operation": "modify",
+          "description": "Add state to track the currently selected or nearest visible AR coin spawn object. Pass this selected coin ID to CameraARActionBar so the action bar can trigger lock/unlock mutations on the correct spawn. On successful lock/unlock mutation, trigger a refresh of player state via usePlayerState invalidation and update arInteractionsStore to persist the new lock state locally. Ensure the AR overlay updates to reflect the new lock state immediately after the backend call succeeds."
+        },
+        {
+          "path": "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
+          "operation": "modify",
+          "description": "Update the overlay sprite rendering logic to check the current lock state from useArInteractions for each visible coin spawn, and display the appropriate lock state indicator (locked/unlocked icon or color) on the overlay sprite. Ensure the sprite updates reactively when arInteractionsStore or player state changes after a successful lock/unlock action."
+        },
+        {
+          "path": "frontend/src/lib/arInteractionsStore.ts",
+          "operation": "modify",
+          "description": "Add immediate localStorage persistence functions for lock/unlock state changes. When a lock/unlock mutation succeeds in CameraARPage, call these functions to update the local cache before the canister state refresh completes. Ensure the subscription mechanism notifies OverlayLayer of the state change so the sprite updates immediately."
+        },
+        {
+          "path": "frontend/src/lib/mockGameplayState.ts",
+          "operation": "modify",
+          "description": "Sync the lock state changes from the backend PlayerState into the local mockGameplayState after successful lock/unlock mutations. Ensure this sync happens after the canister call succeeds and arInteractionsStore has been updated, maintaining consistency between the authoritative backend state and the local gameplay state cache."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Enable monster rescue in the AR camera view so players can interact with visible monsters to capture them",
+      "acceptanceCriteria": [
+        "When a monster spawn is visible in AR and within the player's XP-based tolerance radius, a rescue action is available in the AR action bar.",
+        "Tapping rescue triggers the backend capture mutation and a loading state.",
+        "On success, the monster is marked as captured in mockGameplayState and the overlay sprite reflects the captured state.",
+        "A SpawnCollectFX animation plays on successful monster rescue.",
+        "A 'creature-capture' gameplay history event is recorded via useGameplayHistory."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useArActions.ts",
+          "operation": "modify",
+          "description": "Add a new useCaptureMonster mutation hook that calls a backend capture method (if one exists, otherwise use a placeholder backend capability). The mutation should accept a monster spawn ID, call the backend, and return an ActionResponse. On success, invalidate the player state query cache to refresh the captured monsters list."
+        },
+        {
+          "path": "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+          "operation": "modify",
+          "description": "Add a Rescue button to the action bar that becomes enabled when a monster spawn is visible and within range. When tapped, call the useCaptureMonster mutation with the selected monster spawn ID. Show a loading state on the button during the mutation. Handle success by triggering the SpawnCollectFX animation and recording a gameplay history event. Disable the button when no eligible monster is selected or visible."
+        },
+        {
+          "path": "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+          "operation": "modify",
+          "description": "Extend the selected spawn state to support both coin and monster types. Pass the selected monster spawn to CameraARActionBar. On successful monster capture, update mockGameplayState to mark the monster as captured, trigger SpawnCollectFX with type 'capture', and add a 'creature-capture' event to gameplay history via useGameplayHistory. Ensure the AR overlay updates to reflect the captured state."
+        },
+        {
+          "path": "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
+          "operation": "modify",
+          "description": "Update the overlay sprite rendering for monster spawns to check the captured state from mockGameplayState (with backend PlayerState as override). Display a distinct visual indicator (e.g., grayed out, badge, or icon) for captured monsters. Ensure the sprite updates reactively when a monster is captured."
+        },
+        {
+          "path": "frontend/src/lib/mockGameplayState.ts",
+          "operation": "modify",
+          "description": "Add functions to mark a monster as captured in the local gameplay state after a successful backend capture mutation. Sync the captured state from the backend PlayerState when available. Ensure the captured state persists in localStorage and is keyed by user identity."
+        },
+        {
+          "path": "frontend/src/hooks/useArInteractions.ts",
+          "operation": "modify",
+          "description": "Add a helper function to check if a monster is already captured based on the current player state or mockGameplayState. This will be used by CameraARActionBar to disable the Rescue button for already-captured monsters."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure the spawn markers on the Leaflet map reflect the current lock state and monster rescue state from localStorage",
+      "acceptanceCriteria": [
+        "Locked coins appear with a distinct locked marker style on the Leaflet map.",
+        "Captured monsters appear with a distinct captured marker style on the Leaflet map.",
+        "Map markers update when the player returns to the map after AR interactions."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/map/map.js",
+          "operation": "modify",
+          "description": "Modify the marker rendering logic to read lock state from arInteractionsStore (localStorage) and captured monster state from mockGameplayState (localStorage). For each coin spawn, check if it is locked and apply a distinct locked marker icon (e.g., frontend/public/assets/generated/map-locked-qmy-coin-gold.dim_32x32.png). For each monster spawn, check if it is captured and apply a distinct captured marker icon or style. Ensure the map reads the latest state from localStorage on page load and when the map iframe receives focus or visibility events."
+        },
+        {
+          "path": "frontend/src/components/sections/LeafletMapPage.tsx",
+          "operation": "modify",
+          "description": "Add a mechanism to notify the Leaflet map iframe when AR interactions occur. Use postMessage to send lock/unlock and capture events to the iframe after successful AR actions. This ensures the map markers update in real-time when the player returns to the map section without requiring a full page reload."
+        },
+        {
+          "path": "frontend/src/components/sections/MapMundoLeaflet.tsx",
+          "operation": "modify",
+          "description": "Ensure the iframe-based map reloads or refreshes its marker state when the component mounts or when navigation returns to the map section. Add a key or force-reload mechanism if necessary to ensure markers reflect the latest localStorage state after AR interactions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Move the footer visually higher on all pages by reducing bottom padding/margin so the footer is closer to the last content section",
+      "acceptanceCriteria": [
+        "On all pages that render the Footer component, the footer appears closer to the page content with reduced bottom spacing.",
+        "No page content is shifted upward — only the footer's vertical position relative to content is adjusted.",
+        "The footer is consistently positioned across all pages (Home, Profile, Map, AR, legal pages)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Reduce or remove bottom margin/padding on the Footer component itself. Adjust the parent container's bottom padding/margin if the footer is wrapped in a fixed-position container. Ensure the footer remains at the bottom of its parent but with less dead space above it. Use responsive spacing classes (e.g., pb-4 instead of pb-12) to bring the footer closer to content without shifting page layout."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Review the global layout container (if any) that wraps all sections and ensure no excessive bottom padding or margin is pushing the footer down. Adjust the container's min-height or padding so the footer sits closer to the last content section across all routes. Verify that the footer position is consistent across all sections (HUD, Profile, Map, AR, legal pages)."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "If there are global CSS rules (e.g., body, html, or root container) that add excessive bottom padding or safe-area insets that push the footer down, reduce those values. Ensure the footer spacing adjustment is responsive and does not create layout shift on mobile. Use CSS variables or utility classes to ensure the footer is consistently positioned closer to content across all pages."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Remove all references to 'Caffeine' from the footer component and from any other footer or page-level attribution text across the entire application",
+      "acceptanceCriteria": [
+        "The Footer component contains no text or links referencing 'Caffeine'.",
+        "No other page-level component renders any Caffeine attribution text.",
+        "The footer retains only the social media links and 'By HTgamers' attribution."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Remove all text, links, or components that reference 'Caffeine', 'Built with Caffeine', 'Powered by Caffeine', or any similar attribution. Ensure only the social media links (Facebook, X, Instagram, LinkedIn) and the 'By HTgamers' attribution remain. Verify no hidden or commented-out Caffeine references remain in the component."
+        }
+      ]
+    }
+  ]
+}

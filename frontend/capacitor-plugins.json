@@ -1,0 +1,79 @@
+{
+  "name": "Quantumoney AR Capacitor Plugins",
+  "version": "1.0.0",
+  "description": "Required Capacitor plugins for native mobile functionality",
+  "plugins": {
+    "@capacitor/android": {
+      "version": "^6.0.0",
+      "description": "Android platform support",
+      "required": true
+    },
+    "@capacitor/ios": {
+      "version": "^6.0.0",
+      "description": "iOS platform support",
+      "required": true
+    },
+    "@capacitor/camera": {
+      "version": "^6.0.0",
+      "description": "Native camera access for AR functionality",
+      "required": true,
+      "permissions": {
+        "android": ["CAMERA"],
+        "ios": ["NSCameraUsageDescription"]
+      }
+    },
+    "@capacitor/geolocation": {
+      "version": "^6.0.0",
+      "description": "GPS location for AR coin spawning",
+      "required": true,
+      "permissions": {
+        "android": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+        "ios": ["NSLocationWhenInUseUsageDescription", "NSLocationAlwaysAndWhenInUseUsageDescription"]
+      }
+    },
+    "@capacitor/storage": {
+      "version": "^6.0.0",
+      "description": "Local data storage and caching",
+      "required": true
+    },
+    "@capacitor/preferences": {
+      "version": "^6.0.0",
+      "description": "User preferences and settings",
+      "required": true
+    },
+    "@capacitor/status-bar": {
+      "version": "^6.0.0",
+      "description": "Status bar styling and control",
+      "required": true
+    },
+    "@capacitor/splash-screen": {
+      "version": "^6.0.0",
+      "description": "Native splash screen",
+      "required": true
+    },
+    "@capacitor/app": {
+      "version": "^6.0.0",
+      "description": "App lifecycle management",
+      "required": true
+    },
+    "@capacitor/keyboard": {
+      "version": "^6.0.0",
+      "description": "Keyboard behavior control",
+      "required": false
+    },
+    "@capacitor/haptics": {
+      "version": "^6.0.0",
+      "description": "Haptic feedback",
+      "required": false
+    },
+    "@capacitor/network": {
+      "version": "^6.0.0",
+      "description": "Network status monitoring",
+      "required": false
+    }
+  },
+  "installation": {
+    "command": "pnpm add @capacitor/android @capacitor/ios @capacitor/camera @capacitor/geolocation @capacitor/storage @capacitor/status-bar @capacitor/splash-screen @capacitor/app @capacitor/preferences",
+    "devDependencies": "pnpm add -D @capacitor/cli @capacitor/core"
+  }
+}

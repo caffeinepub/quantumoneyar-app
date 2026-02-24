@@ -1,0 +1,40 @@
+{
+  "projectName": "Quantumoney AR",
+  "packageName": "ai.caffeine.quantumoney",
+  "versionName": "1.0.0",
+  "versionCode": 200,
+  "minSdkVersion": 24,
+  "targetSdkVersion": 34,
+  "compileSdkVersion": 34,
+  "buildToolsVersion": "34.0.0",
+  "keystoreConfig": {
+    "storeFile": "quantumoney-release-key.keystore",
+    "storePassword": "REPLACE_WITH_YOUR_KEYSTORE_PASSWORD",
+    "keyAlias": "quantumoney-key",
+    "keyPassword": "REPLACE_WITH_YOUR_KEY_PASSWORD"
+  },
+  "permissions": [
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    "android.permission.CAMERA",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.READ_EXTERNAL_STORAGE"
+  ],
+  "features": [
+    "android.hardware.camera",
+    "android.hardware.camera.autofocus",
+    "android.hardware.location.gps"
+  ],
+  "playStoreMetadata": {
+    "title": "Quantumoney AR",
+    "shortDescription": "AR blockchain game on Internet Computer Protocol",
+    "fullDescription": "Quantumoney AR is an augmented reality game that integrates blockchain technology on the Internet Computer Protocol (ICP). Explore the real world, collect QMY coins, capture creatures, and participate in DAO governance.\n\nFeatures:\n• AR camera mode for immersive gameplay\n• Location-based coin and creature spawns\n• Blockchain-backed token economy\n• Community governance through DAO\n• Secure authentication via Internet Identity\n\nJoin thousands of players worldwide in this innovative AR blockchain experience!",
+    "category": "GAME_ADVENTURE",
+    "contentRating": "PEGI_3",
+    "privacyPolicyUrl": "https://quantumoney.app/privacy",
+    "websiteUrl": "https://quantumoney.app",
+    "supportEmail": "helpdesk@quantumoney.net"
+  }
+}

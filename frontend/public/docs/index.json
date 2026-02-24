@@ -1,0 +1,48 @@
+{
+  "title": "Quantumoney AR - Documentação",
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-19",
+  "sections": [
+    {
+      "id": "getting-started",
+      "title": "Começando",
+      "description": "Guia de início rápido para usar o Quantumoney AR",
+      "url": "/docs/getting-started.html"
+    },
+    {
+      "id": "gameplay",
+      "title": "Gameplay",
+      "description": "Mecânicas de jogo, AR, e sistema de criaturas",
+      "url": "/docs/gameplay.html"
+    },
+    {
+      "id": "tokenomics",
+      "title": "Tokenomics",
+      "description": "Economia de tokens QMY e sistema de vesting",
+      "url": "/docs/tokenomics.html"
+    },
+    {
+      "id": "dao",
+      "title": "Governança DAO",
+      "description": "Sistema de governança descentralizada",
+      "url": "/docs/dao.html"
+    },
+    {
+      "id": "technical",
+      "title": "Documentação Técnica",
+      "description": "Arquitetura, API, e integração com ICP",
+      "url": "/docs/technical.html"
+    },
+    {
+      "id": "mobile",
+      "title": "Aplicação Móvel",
+      "description": "Build e deployment para Android e iOS",
+      "url": "/docs/mobile.html"
+    }
+  ],
+  "links": {
+    "github": "https://github.com/HTgamers/quantumoney",
+    "whitepaper": "/whitepaper.pdf",
+    "api": "https://ic0.app/?id=MAIN_CANISTER_ID"
+  }
+}
