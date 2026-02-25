@@ -34,6 +34,7 @@ interface Coin {
   type: 'qmy' | 'icp';
   scale: number;
   rotation: number;
+  driftX: number;
 }
 
 export default function HomeSpaceBackground() {
@@ -55,13 +56,13 @@ export default function HomeSpaceBackground() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Preload coin images
+    // Preload golden coin images
     const qmyImg = new Image();
-    qmyImg.src = '/assets/generated/qmy-coin.dim_128x128.png';
+    qmyImg.src = '/assets/generated/qmy-coin-gold.dim_128x128.png';
     qmyImageRef.current = qmyImg;
 
     const icpImg = new Image();
-    icpImg.src = '/assets/generated/icp-coin.dim_128x128.png';
+    icpImg.src = '/assets/generated/icp-coin-gold.dim_128x128.png';
     icpImageRef.current = icpImg;
 
     // Set canvas size
@@ -72,10 +73,10 @@ export default function HomeSpaceBackground() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Initialize stars (100 stars for richer background)
+    // Initialize stars (120 stars for richer background)
     const initStars = () => {
       starsRef.current = [];
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 120; i++) {
         starsRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
@@ -86,16 +87,16 @@ export default function HomeSpaceBackground() {
       }
     };
 
-    // Initialize planets (8 planets)
+    // Initialize planets (6 planets with gold/dark tones)
     const initPlanets = () => {
       planetsRef.current = [];
-      const colors = ['#4A5568', '#2D3748', '#1A202C', '#718096', '#A0AEC0'];
-      for (let i = 0; i < 8; i++) {
+      const colors = ['#2D2000', '#1A1500', '#3D3000', '#4A3800', '#1E1800', '#2A2000'];
+      for (let i = 0; i < 6; i++) {
         planetsRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          size: Math.random() * 50 + 30,
-          speed: Math.random() * 0.08 + 0.03,
+          size: Math.random() * 55 + 25,
+          speed: Math.random() * 0.06 + 0.02,
           color: colors[Math.floor(Math.random() * colors.length)],
           offsetY: 0,
         });
@@ -124,16 +125,17 @@ export default function HomeSpaceBackground() {
     const animate = (timestamp: number) => {
       if (!ctx || !canvas) return;
 
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Clear canvas with deep space background
+      ctx.fillStyle = 'rgba(0, 0, 5, 0.25)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Draw stars with gentle twinkling
       starsRef.current.forEach((star) => {
         star.opacity += star.speed * (Math.random() > 0.5 ? 1 : -1);
         if (star.opacity > 1) star.opacity = 1;
-        if (star.opacity < 0.3) star.opacity = 0.3;
+        if (star.opacity < 0.2) star.opacity = 0.2;
 
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+        ctx.fillStyle = `rgba(255, 255, 220, ${star.opacity})`;
         ctx.beginPath();
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
         ctx.fill();
@@ -142,24 +144,38 @@ export default function HomeSpaceBackground() {
       // Draw planets with gentle floating motion
       planetsRef.current.forEach((planet) => {
         planet.offsetY += planet.speed;
-        if (planet.offsetY > 8) planet.offsetY = -8;
+        if (planet.offsetY > 10) planet.offsetY = -10;
 
+        // Planet body
+        ctx.globalAlpha = 0.45;
         ctx.fillStyle = planet.color;
-        ctx.globalAlpha = 0.5;
         ctx.beginPath();
         ctx.arc(planet.x, planet.y + planet.offsetY, planet.size, 0, Math.PI * 2);
         ctx.fill();
+
+        // Planet ring glow (gold tint)
+        const ringGrad = ctx.createRadialGradient(
+          planet.x, planet.y + planet.offsetY, planet.size * 0.7,
+          planet.x, planet.y + planet.offsetY, planet.size * 1.3
+        );
+        ringGrad.addColorStop(0, 'rgba(255,215,0,0.08)');
+        ringGrad.addColorStop(1, 'rgba(255,215,0,0)');
+        ctx.fillStyle = ringGrad;
+        ctx.beginPath();
+        ctx.arc(planet.x, planet.y + planet.offsetY, planet.size * 1.3, 0, Math.PI * 2);
+        ctx.fill();
+
         ctx.globalAlpha = 1;
       });
 
-      // Spawn occasional comets (every 10-15 seconds)
-      if (timestamp - lastCometTimeRef.current > 10000 + Math.random() * 5000) {
+      // Spawn occasional comets (every 8-14 seconds)
+      if (timestamp - lastCometTimeRef.current > 8000 + Math.random() * 6000) {
         const inactiveComet = cometsRef.current.find((c) => !c.active);
         if (inactiveComet) {
           inactiveComet.x = Math.random() * canvas.width;
           inactiveComet.y = -50;
-          inactiveComet.speed = Math.random() * 2 + 1.5;
-          inactiveComet.length = Math.random() * 60 + 40;
+          inactiveComet.speed = Math.random() * 2.5 + 1.5;
+          inactiveComet.length = Math.random() * 80 + 50;
           inactiveComet.active = true;
           lastCometTimeRef.current = timestamp;
         }
@@ -169,7 +185,7 @@ export default function HomeSpaceBackground() {
       cometsRef.current.forEach((comet) => {
         if (!comet.active) return;
 
-        comet.x += comet.speed * 0.5;
+        comet.x += comet.speed * 0.6;
         comet.y += comet.speed;
 
         if (comet.y > canvas.height + 100) {
@@ -177,54 +193,69 @@ export default function HomeSpaceBackground() {
         }
 
         const gradient = ctx.createLinearGradient(
-          comet.x,
+          comet.x - comet.length * 0.3,
           comet.y - comet.length,
           comet.x,
           comet.y
         );
         gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        gradient.addColorStop(0.5, 'rgba(200, 200, 255, 0.6)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.9)');
+        gradient.addColorStop(0.5, 'rgba(255, 240, 180, 0.5)');
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.95)');
 
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(comet.x, comet.y - comet.length);
+        ctx.moveTo(comet.x - comet.length * 0.3, comet.y - comet.length);
         ctx.lineTo(comet.x, comet.y);
         ctx.stroke();
 
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        // Comet head glow
+        const headGlow = ctx.createRadialGradient(comet.x, comet.y, 0, comet.x, comet.y, 6);
+        headGlow.addColorStop(0, 'rgba(255, 255, 200, 1)');
+        headGlow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        ctx.fillStyle = headGlow;
         ctx.beginPath();
-        ctx.arc(comet.x, comet.y, 3, 0, Math.PI * 2);
+        ctx.arc(comet.x, comet.y, 6, 0, Math.PI * 2);
         ctx.fill();
       });
 
-      // Spawn floating coins (every 1.5-3 seconds, max 12 coins)
+      // Spawn floating golden coins (every 2-4 seconds, max 10 coins)
       if (
-        timestamp - lastCoinTimeRef.current > 1500 + Math.random() * 1500 &&
-        coinsRef.current.length < 12
+        timestamp - lastCoinTimeRef.current > 2000 + Math.random() * 2000 &&
+        coinsRef.current.length < 10
       ) {
         coinsRef.current.push({
           x: Math.random() * canvas.width,
-          y: canvas.height + 50,
-          size: 30,
-          speed: Math.random() * 0.8 + 0.5,
-          opacity: 1,
+          y: canvas.height + 60,
+          size: 28,
+          speed: Math.random() * 0.6 + 0.3,
+          opacity: 0,
           type: Math.random() > 0.5 ? 'qmy' : 'icp',
-          scale: 0.5,
+          scale: 0.4,
           rotation: Math.random() * Math.PI * 2,
+          driftX: (Math.random() - 0.5) * 0.4,
         });
         lastCoinTimeRef.current = timestamp;
       }
 
-      // Draw floating coins with images
+      // Draw floating golden coins
       coinsRef.current = coinsRef.current.filter((coin) => {
         coin.y -= coin.speed;
-        coin.scale += 0.004;
-        coin.rotation += 0.02;
-        coin.opacity -= 0.002;
+        coin.x += coin.driftX;
+        coin.scale = Math.min(1.2, coin.scale + 0.003);
+        coin.rotation += 0.015;
 
-        if (coin.opacity <= 0 || coin.y < -150) {
+        // Fade in at bottom, fade out near top
+        if (coin.y > canvas.height * 0.7) {
+          coin.opacity = Math.min(0.9, coin.opacity + 0.03);
+        } else if (coin.y < canvas.height * 0.2) {
+          coin.opacity = Math.max(0, coin.opacity - 0.015);
+        }
+
+        if (coin.opacity <= 0 && coin.y < canvas.height * 0.2) {
+          return false;
+        }
+        if (coin.y < -100) {
           return false;
         }
 
@@ -235,15 +266,34 @@ export default function HomeSpaceBackground() {
         ctx.scale(coin.scale, coin.scale);
 
         const img = coin.type === 'qmy' ? qmyImageRef.current : icpImageRef.current;
-        if (img && img.complete) {
+        if (img && img.complete && img.naturalWidth > 0) {
+          // Golden glow behind coin
+          const glowGrad = ctx.createRadialGradient(0, 0, coin.size * 0.3, 0, 0, coin.size * 1.5);
+          glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
+          glowGrad.addColorStop(1, 'rgba(255, 165, 0, 0)');
+          ctx.fillStyle = glowGrad;
+          ctx.beginPath();
+          ctx.arc(0, 0, coin.size * 1.5, 0, Math.PI * 2);
+          ctx.fill();
+
           ctx.drawImage(img, -coin.size, -coin.size, coin.size * 2, coin.size * 2);
         } else {
-          // Fallback if image not loaded
+          // Fallback golden circle
           const coinColor = coin.type === 'qmy' ? '#FFD700' : '#29ABE2';
-          ctx.fillStyle = coinColor;
+          const fallbackGrad = ctx.createRadialGradient(-coin.size * 0.3, -coin.size * 0.3, 0, 0, 0, coin.size);
+          fallbackGrad.addColorStop(0, '#FFF0A0');
+          fallbackGrad.addColorStop(0.5, coinColor);
+          fallbackGrad.addColorStop(1, '#B8860B');
+          ctx.fillStyle = fallbackGrad;
           ctx.beginPath();
           ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
           ctx.fill();
+
+          ctx.fillStyle = 'rgba(255,255,255,0.8)';
+          ctx.font = `bold ${coin.size * 0.7}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(coin.type === 'qmy' ? 'Q' : 'I', 0, 0);
         }
 
         ctx.restore();

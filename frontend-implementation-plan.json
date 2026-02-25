@@ -1,154 +1,126 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Activate AR Lock/Unlock Buttons, Enable Monster Rescue, and Fix All Page Footers",
+  "title": "QuantumoneyAR final sync: profile photo, monster XP, home background, footer ICP reference",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Activate the Lock and Unlock buttons in the AR camera view so players can trigger lock and unlock coin interactions on visible AR spawn objects",
+      "id": "REQ-14",
+      "summary": "Add profile photo upload and display for authenticated users using the blob-storage component",
       "acceptanceCriteria": [
-        "Tapping the Lock button on a visible AR coin triggers the lockCoin backend call and shows a loading indicator.",
-        "Tapping the Unlock button on a locked AR coin triggers the unlockCoin backend call and shows a loading indicator.",
-        "After a successful lock/unlock, the coin's overlay sprite updates to reflect the new lock state.",
-        "The lock state is persisted in arInteractionsStore (localStorage) immediately after the backend call succeeds.",
-        "Buttons are disabled (not hidden) when no eligible coin/monster is selected or in view."
+        "An 'Edit Photo' button is visible on the Profile page for authenticated users.",
+        "Clicking the button opens a file picker limited to image types.",
+        "The selected image is uploaded to the backend and persisted per principal.",
+        "The profile photo is displayed in Profile.tsx and in the Header auth dropdown.",
+        "If no photo is set, a default avatar placeholder is shown.",
+        "Photo changes made in the app are reflected on next load without a hard refresh."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/sections/Profile.tsx",
+          "operation": "modify",
+          "description": "Add profile photo display and upload functionality in the Profile Overview tab. Use the blob-storage component to handle photo uploads via ExternalBlob.fromBytes() with progress tracking. Display the photo from userProfile.photoUrl using getDirectURL() if available, otherwise show the generated default avatar image from frontend/public/assets/generated/avatar-default.dim_128x128.png. Add an 'Edit Photo' button that opens a file input limited to image/* types. When a photo is selected, convert it to bytes, create an ExternalBlob, upload it with progress tracking, then call saveCallerUserProfile mutation to persist the updated profile. Verify the blob-storage component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Update the auth dropdown to display the user's profile photo. Fetch the current user profile using getCallerUserProfile and display the photo using photoUrl?.getDirectURL() if available, otherwise show the default avatar from frontend/public/assets/generated/avatar-default.dim_128x128.png. Ensure the photo is displayed as a small circular thumbnail next to the user's name/balances in the dropdown. Verify the blob-storage component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure the useCallerUserProfile query hook properly handles the photoUrl field of type ExternalBlob from the backend interface. No special query logic needed beyond what's already present, but verify that the UserProfile type includes the optional photoUrl field."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Award +20 XP for monster rescue in AR camera view and reflect in GameStateContext and Profile",
+      "acceptanceCriteria": [
+        "Rescuing a monster in the AR view triggers a +20 XP backend mutation.",
+        "The XP increase is reflected immediately in the Header auth dropdown balance display.",
+        "The Profile page XP counter updates after a monster rescue without requiring a manual refresh.",
+        "The +20 XP delta is consistent whether the monster is rescued via the AR Rescue button or any equivalent action.",
+        "The gameplay history event added via useGameplayHistory records the +20 XP gain."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
           "operation": "modify",
-          "description": "Wire the Lock and Unlock buttons to call useLockCoin and useUnlockCoin mutations from useArActions, passing the correct spawn/coin ID from the currently selected or nearest visible AR coin. Show loading states during the async call using the mutation's isLoading state. Disable buttons when no eligible coin is selected or visible. Ensure buttons call the backend mutations and handle success/error states with appropriate UI feedback."
+          "description": "Add a monster rescue button that triggers when a monster is within proximity. On rescue, add a gameplay history event via useGameplayHistory with type 'creature-capture' and xpGained: 20. The backend mutation for monster capture should already update XP; ensure the frontend invalidates the playerState query after rescue to refresh XP in the UI. Display a toast notification confirming +20 XP gain. Coordinate with the GameStateContext refresh mechanism to ensure the Header and Profile reflect the new XP immediately."
         },
         {
-          "path": "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+          "path": "frontend/src/contexts/GameStateContext.tsx",
           "operation": "modify",
-          "description": "Add state to track the currently selected or nearest visible AR coin spawn object. Pass this selected coin ID to CameraARActionBar so the action bar can trigger lock/unlock mutations on the correct spawn. On successful lock/unlock mutation, trigger a refresh of player state via usePlayerState invalidation and update arInteractionsStore to persist the new lock state locally. Ensure the AR overlay updates to reflect the new lock state immediately after the backend call succeeds."
+          "description": "Ensure the GameStateContext auto-refreshes player state (including XP) when window focus is regained and after monster capture mutations. Verify that the refresh function invalidates the playerState query so that the Header and Profile page XP counters update immediately after a monster rescue without requiring a manual page refresh."
         },
         {
-          "path": "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
+          "path": "frontend/src/gameplay/history/useGameplayHistory.ts",
           "operation": "modify",
-          "description": "Update the overlay sprite rendering logic to check the current lock state from useArInteractions for each visible coin spawn, and display the appropriate lock state indicator (locked/unlocked icon or color) on the overlay sprite. Ensure the sprite updates reactively when arInteractionsStore or player state changes after a successful lock/unlock action."
-        },
-        {
-          "path": "frontend/src/lib/arInteractionsStore.ts",
-          "operation": "modify",
-          "description": "Add immediate localStorage persistence functions for lock/unlock state changes. When a lock/unlock mutation succeeds in CameraARPage, call these functions to update the local cache before the canister state refresh completes. Ensure the subscription mechanism notifies OverlayLayer of the state change so the sprite updates immediately."
-        },
-        {
-          "path": "frontend/src/lib/mockGameplayState.ts",
-          "operation": "modify",
-          "description": "Sync the lock state changes from the backend PlayerState into the local mockGameplayState after successful lock/unlock mutations. Ensure this sync happens after the canister call succeeds and arInteractionsStore has been updated, maintaining consistency between the authoritative backend state and the local gameplay state cache."
+          "description": "Ensure the addEvent function supports creature-capture events with an xpGained field set to 20. Verify that the event is persisted to localStorage and displayed in the Profile page gameplay history."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Enable monster rescue in the AR camera view so players can interact with visible monsters to capture them",
+      "id": "REQ-16",
+      "summary": "Activate the HomeSpaceBackground canvas on the HUD/Home section with twinkling stars, planets, comets, and floating ICP/QMY coins",
       "acceptanceCriteria": [
-        "When a monster spawn is visible in AR and within the player's XP-based tolerance radius, a rescue action is available in the AR action bar.",
-        "Tapping rescue triggers the backend capture mutation and a loading state.",
-        "On success, the monster is marked as captured in mockGameplayState and the overlay sprite reflects the captured state.",
-        "A SpawnCollectFX animation plays on successful monster rescue.",
-        "A 'creature-capture' gameplay history event is recorded via useGameplayHistory."
+        "The HOME / HUD section renders the HomeSpaceBackground canvas as a full-screen fixed backdrop.",
+        "Stars twinkle, planets float, and comets animate across the canvas.",
+        "Golden ICP and QMY coin images drift smoothly across the screen.",
+        "The animation runs without blocking UI interaction on top of it.",
+        "The background is not visible on other pages (AR, Map, Profile, etc.)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useArActions.ts",
+          "path": "frontend/src/components/sections/HUD.tsx",
           "operation": "modify",
-          "description": "Add a new useCaptureMonster mutation hook that calls a backend capture method (if one exists, otherwise use a placeholder backend capability). The mutation should accept a monster spawn ID, call the backend, and return an ActionResponse. On success, invalidate the player state query cache to refresh the captured monsters list."
+          "description": "Import and render the HomeSpaceBackground component as a full-screen fixed backdrop behind all other HUD content. Ensure it is positioned with fixed positioning and z-index lower than interactive UI elements so it does not block user interaction. The component should only render when the HUD section is active."
         },
         {
-          "path": "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+          "path": "frontend/src/components/sections/HomeSpaceBackground.tsx",
           "operation": "modify",
-          "description": "Add a Rescue button to the action bar that becomes enabled when a monster spawn is visible and within range. When tapped, call the useCaptureMonster mutation with the selected monster spawn ID. Show a loading state on the button during the mutation. Handle success by triggering the SpawnCollectFX animation and recording a gameplay history event. Disable the button when no eligible monster is selected or visible."
-        },
-        {
-          "path": "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
-          "operation": "modify",
-          "description": "Extend the selected spawn state to support both coin and monster types. Pass the selected monster spawn to CameraARActionBar. On successful monster capture, update mockGameplayState to mark the monster as captured, trigger SpawnCollectFX with type 'capture', and add a 'creature-capture' event to gameplay history via useGameplayHistory. Ensure the AR overlay updates to reflect the captured state."
-        },
-        {
-          "path": "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
-          "operation": "modify",
-          "description": "Update the overlay sprite rendering for monster spawns to check the captured state from mockGameplayState (with backend PlayerState as override). Display a distinct visual indicator (e.g., grayed out, badge, or icon) for captured monsters. Ensure the sprite updates reactively when a monster is captured."
-        },
-        {
-          "path": "frontend/src/lib/mockGameplayState.ts",
-          "operation": "modify",
-          "description": "Add functions to mark a monster as captured in the local gameplay state after a successful backend capture mutation. Sync the captured state from the backend PlayerState when available. Ensure the captured state persists in localStorage and is keyed by user identity."
-        },
-        {
-          "path": "frontend/src/hooks/useArInteractions.ts",
-          "operation": "modify",
-          "description": "Add a helper function to check if a monster is already captured based on the current player state or mockGameplayState. This will be used by CameraARActionBar to disable the Rescue button for already-captured monsters."
+          "description": "Enhance the existing canvas animation to include floating golden ICP and QMY coin images. Load the generated coin images from frontend/public/assets/generated/icp-coin-gold.dim_128x128.png and frontend/public/assets/generated/qmy-coin-gold.dim_128x128.png. Render these coins drifting slowly across the canvas using smooth motion paths. Ensure stars twinkle, planets float, and comets animate continuously. The canvas should be a full-screen fixed backdrop with pointer-events: none to allow interaction with overlaid UI elements."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Ensure the spawn markers on the Leaflet map reflect the current lock state and monster rescue state from localStorage",
+      "id": "REQ-17",
+      "summary": "Add ICP cryptocurrency reference to Footer component alongside social share links",
       "acceptanceCriteria": [
-        "Locked coins appear with a distinct locked marker style on the Leaflet map.",
-        "Captured monsters appear with a distinct captured marker style on the Leaflet map.",
-        "Map markers update when the player returns to the map after AR interactions."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/map/map.js",
-          "operation": "modify",
-          "description": "Modify the marker rendering logic to read lock state from arInteractionsStore (localStorage) and captured monster state from mockGameplayState (localStorage). For each coin spawn, check if it is locked and apply a distinct locked marker icon (e.g., frontend/public/assets/generated/map-locked-qmy-coin-gold.dim_32x32.png). For each monster spawn, check if it is captured and apply a distinct captured marker icon or style. Ensure the map reads the latest state from localStorage on page load and when the map iframe receives focus or visibility events."
-        },
-        {
-          "path": "frontend/src/components/sections/LeafletMapPage.tsx",
-          "operation": "modify",
-          "description": "Add a mechanism to notify the Leaflet map iframe when AR interactions occur. Use postMessage to send lock/unlock and capture events to the iframe after successful AR actions. This ensures the map markers update in real-time when the player returns to the map section without requiring a full page reload."
-        },
-        {
-          "path": "frontend/src/components/sections/MapMundoLeaflet.tsx",
-          "operation": "modify",
-          "description": "Ensure the iframe-based map reloads or refreshes its marker state when the component mounts or when navigation returns to the map section. Add a key or force-reload mechanism if necessary to ensure markers reflect the latest localStorage state after AR interactions."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Move the footer visually higher on all pages by reducing bottom padding/margin so the footer is closer to the last content section",
-      "acceptanceCriteria": [
-        "On all pages that render the Footer component, the footer appears closer to the page content with reduced bottom spacing.",
-        "No page content is shifted upward — only the footer's vertical position relative to content is adjusted.",
-        "The footer is consistently positioned across all pages (Home, Profile, Map, AR, legal pages)."
+        "The Footer component displays the ICP logo/icon and a 'Powered by ICP' label.",
+        "The ICP reference is displayed alongside (not replacing) the four social share links.",
+        "No Caffeine branding appears anywhere in the footer.",
+        "The footer remains compact and does not overlap the bottom navigation bar.",
+        "The ICP logo links to the Internet Computer official website (https://internetcomputer.org)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/Footer.tsx",
           "operation": "modify",
-          "description": "Reduce or remove bottom margin/padding on the Footer component itself. Adjust the parent container's bottom padding/margin if the footer is wrapped in a fixed-position container. Ensure the footer remains at the bottom of its parent but with less dead space above it. Use responsive spacing classes (e.g., pb-4 instead of pb-12) to bring the footer closer to content without shifting page layout."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Review the global layout container (if any) that wraps all sections and ensure no excessive bottom padding or margin is pushing the footer down. Adjust the container's min-height or padding so the footer sits closer to the last content section across all routes. Verify that the footer position is consistent across all sections (HUD, Profile, Map, AR, legal pages)."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "If there are global CSS rules (e.g., body, html, or root container) that add excessive bottom padding or safe-area insets that push the footer down, reduce those values. Ensure the footer spacing adjustment is responsive and does not create layout shift on mobile. Use CSS variables or utility classes to ensure the footer is consistently positioned closer to content across all pages."
+          "description": "Add an ICP reference section to the Footer component. Display the ICP logo from frontend/public/assets/generated/icp-coin-gold.dim_128x128.png alongside a 'Powered by ICP' text label. Link the logo and label to https://internetcomputer.org with target='_blank' and rel='noopener noreferrer'. Position the ICP reference next to the existing social share links (WhatsApp, X, Telegram, Instagram) without replacing them. Ensure no Caffeine branding is present. Keep the footer compact in height so it does not overlap the bottom navigation bar."
         }
       ]
     },
     {
-      "id": "REQ-5",
-      "summary": "Remove all references to 'Caffeine' from the footer component and from any other footer or page-level attribution text across the entire application",
+      "id": "REQ-18",
+      "summary": "Display and enable inline editing of player username/display name on Profile page, synced with Quantumoney.app via Internet Identity",
       "acceptanceCriteria": [
-        "The Footer component contains no text or links referencing 'Caffeine'.",
-        "No other page-level component renders any Caffeine attribution text.",
-        "The footer retains only the social media links and 'By HTgamers' attribution."
+        "The Profile page shows the authenticated user's display name fetched from the backend.",
+        "The display name defaults to the one already set on Quantumoney.app for the same principal.",
+        "An inline edit control allows changing the display name.",
+        "Saving the new name persists it to the backend actor via a mutation.",
+        "The updated name is visible in the Header auth dropdown after saving."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Footer.tsx",
+          "path": "frontend/src/components/sections/Profile.tsx",
           "operation": "modify",
-          "description": "Remove all text, links, or components that reference 'Caffeine', 'Built with Caffeine', 'Powered by Caffeine', or any similar attribution. Ensure only the social media links (Facebook, X, Instagram, LinkedIn) and the 'By HTgamers' attribution remain. Verify no hidden or commented-out Caffeine references remain in the component."
+          "description": "In the Profile Overview tab, display the user's display name from the userProfile.name field fetched via getCallerUserProfile. Add an inline edit control (e.g., an edit icon button or double-click to edit) that allows the user to change the display name. When the user saves the new name, call the saveCallerUserProfile mutation with the updated profile object. After saving, invalidate the userProfile query so the Header auth dropdown reflects the updated name immediately. Use a text input with save/cancel buttons or an inline editable field component."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Ensure the auth dropdown displays the user's display name from the fetched userProfile.name field. After the Profile page updates the name via saveCallerUserProfile, the Header should automatically reflect the change when the userProfile query is invalidated and refetched. No direct changes to Header logic are required beyond ensuring it consumes the latest userProfile data."
         }
       ]
     }

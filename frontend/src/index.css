@@ -1,177 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    /* OKLCH Color System - Light Mode */
-    --background: oklch(100% 0 0);
-    --foreground: oklch(10% 0 0);
-    --card: oklch(100% 0 0);
-    --card-foreground: oklch(10% 0 0);
-    --popover: oklch(100% 0 0);
-    --popover-foreground: oklch(10% 0 0);
-    --primary: oklch(65% 0.2 45);
-    --primary-foreground: oklch(10% 0 0);
-    --secondary: oklch(95% 0.01 45);
-    --secondary-foreground: oklch(10% 0 0);
-    --muted: oklch(95% 0.01 45);
-    --muted-foreground: oklch(45% 0.01 45);
-    --accent: oklch(95% 0.01 45);
-    --accent-foreground: oklch(10% 0 0);
-    --destructive: oklch(55% 0.22 25);
-    --destructive-foreground: oklch(98% 0 0);
-    --border: oklch(90% 0.01 45);
-    --input: oklch(90% 0.01 45);
-    --ring: oklch(65% 0.2 45);
-    --radius: 0.5rem;
-  }
+:root {
+  /* Gold/Dark palette */
+  --background: oklch(0.08 0.01 60);
+  --foreground: oklch(0.95 0.05 80);
 
-  .dark {
-    /* OKLCH Color System - Dark Mode */
-    --background: oklch(10% 0 0);
-    --foreground: oklch(98% 0 0);
-    --card: oklch(10% 0 0);
-    --card-foreground: oklch(98% 0 0);
-    --popover: oklch(10% 0 0);
-    --popover-foreground: oklch(98% 0 0);
-    --primary: oklch(65% 0.2 45);
-    --primary-foreground: oklch(10% 0 0);
-    --secondary: oklch(20% 0.01 45);
-    --secondary-foreground: oklch(98% 0 0);
-    --muted: oklch(20% 0.01 45);
-    --muted-foreground: oklch(65% 0.01 45);
-    --accent: oklch(20% 0.01 45);
-    --accent-foreground: oklch(98% 0 0);
-    --destructive: oklch(55% 0.22 25);
-    --destructive-foreground: oklch(98% 0 0);
-    --border: oklch(20% 0.01 45);
-    --input: oklch(20% 0.01 45);
-    --ring: oklch(65% 0.2 45);
-  }
+  --card: oklch(0.10 0.01 60);
+  --card-foreground: oklch(0.95 0.05 80);
+
+  --popover: oklch(0.10 0.01 60);
+  --popover-foreground: oklch(0.95 0.05 80);
+
+  --primary: oklch(0.82 0.18 85);
+  --primary-foreground: oklch(0.10 0.01 60);
+
+  --secondary: oklch(0.18 0.02 60);
+  --secondary-foreground: oklch(0.82 0.18 85);
+
+  --muted: oklch(0.18 0.02 60);
+  --muted-foreground: oklch(0.55 0.05 80);
+
+  --accent: oklch(0.82 0.18 85);
+  --accent-foreground: oklch(0.10 0.01 60);
+
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.95 0.02 25);
+
+  --border: oklch(0.25 0.04 80);
+  --input: oklch(0.18 0.02 60);
+  --ring: oklch(0.82 0.18 85);
+
+  --radius: 0.5rem;
+
+  /* Gold accent */
+  --gold: #FFD700;
+  --gold-dim: rgba(255, 215, 0, 0.6);
+  --gold-faint: rgba(255, 215, 0, 0.1);
+  --glass-bg: rgba(10, 10, 10, 0.75);
+  --glass-border: rgba(255, 215, 0, 0.25);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  
+.dark {
+  --background: oklch(0.08 0.01 60);
+  --foreground: oklch(0.95 0.05 80);
+  --card: oklch(0.10 0.01 60);
+  --card-foreground: oklch(0.95 0.05 80);
+  --popover: oklch(0.10 0.01 60);
+  --popover-foreground: oklch(0.95 0.05 80);
+  --primary: oklch(0.82 0.18 85);
+  --primary-foreground: oklch(0.10 0.01 60);
+  --secondary: oklch(0.18 0.02 60);
+  --secondary-foreground: oklch(0.82 0.18 85);
+  --muted: oklch(0.18 0.02 60);
+  --muted-foreground: oklch(0.55 0.05 80);
+  --accent: oklch(0.82 0.18 85);
+  --accent-foreground: oklch(0.10 0.01 60);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.95 0.02 25);
+  --border: oklch(0.25 0.04 80);
+  --input: oklch(0.18 0.02 60);
+  --ring: oklch(0.82 0.18 85);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+  background: #050505;
+  color: #f0e6c0;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Safe area support for iOS */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Glass card styles */
+.glass-card {
+  background: rgba(10, 10, 10, 0.75);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-card-gold {
+  background: rgba(10, 10, 10, 0.8);
+  border: 1.5px solid rgba(255, 215, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.08);
+}
+
+/* Gold text */
+.text-gold {
+  color: #FFD700;
+}
+
+.text-gold-dim {
+  color: rgba(255, 215, 0, 0.6);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.3);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.5);
+}
+
+/* Animations */
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 8px rgba(255, 215, 0, 0.4); }
+  50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.8); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* PWA splash screen */
+@media (display-mode: standalone) {
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    overflow-x: hidden;
-  }
-
-  html, body, #root {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
-
-  /* Mobile-first responsive utilities */
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .safe-left {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .safe-right {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  /* Full height layouts with proper footer visibility */
-  .min-h-screen-safe {
-    min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
-
-  .h-screen-safe {
-    height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-  }
-
-  /* Prevent horizontal overflow */
-  .overflow-x-hidden {
-    overflow-x: hidden;
-  }
-
-  /* Glass card with gold theme */
-  .glass-card-gold {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    border-radius: 1rem;
-  }
-
-  /* Mobile-specific typography adjustments */
-  @media (max-width: 640px) {
-    h1 {
-      @apply text-2xl;
-    }
-    
-    h2 {
-      @apply text-xl;
-    }
-    
-    h3 {
-      @apply text-lg;
-    }
-    
-    p {
-      @apply text-sm;
-    }
-  }
-
-  /* Ensure proper layout for flex containers */
-  .flex-col-full {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  .flex-1-auto {
-    flex: 1 1 auto;
-    overflow-y: auto;
+    background: #050505;
   }
 }
 
-@layer utilities {
-  /* Responsive container utilities */
-  .container-safe {
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+/* Mobile typography */
+@media (max-width: 640px) {
+  html {
+    font-size: 15px;
   }
+}
 
-  @media (min-width: 640px) {
-    .container-safe {
-      max-width: 640px;
-    }
-  }
+/* Prevent text selection on interactive elements */
+button, a {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
 
-  @media (min-width: 768px) {
-    .container-safe {
-      max-width: 768px;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .container-safe {
-      max-width: 1024px;
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .container-safe {
-      max-width: 1280px;
-    }
-  }
+/* Full height flex layout */
+.full-height-flex {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
 }

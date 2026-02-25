@@ -1,53 +1,38 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-24T22:58:23.211Z",
-  "summary": "The diff only modifies project_state.json, which is a planning/tracking file that records feature requests and their status. All requirements (REQ-1 through REQ-5) are listed in the project state as 'pending', meaning no actual implementation has been done. None of the frontend code changes required by the build request have been implemented.",
+  "generatedAt": "2026-02-25T23:38:08.251Z",
+  "summary": "The diff implements most of the four main requirements (REQ-14, REQ-15, REQ-16, REQ-17, REQ-18). REQ-16 and REQ-17 appear fully implemented. REQ-14 and REQ-18 are largely implemented in Profile.tsx and Header.tsx. REQ-15 is partially implemented but the backend XP mutation for monster rescue is not clearly wired up — the handleRescue in CameraARActionBar records the event and refreshes state but does not call a backend captureMonster mutation.",
   "missing_requirements": [
     {
-      "id": "REQ-1",
-      "requirement": "Activate the Lock and Unlock buttons in the AR camera view (CameraARActionBar) so that players can trigger lock and unlock coin interactions on visible AR spawn objects, with loading states and lock state persistence.",
-      "reason": "No frontend source files were modified. The project_state.json only records this as a pending feature request (AR-3) with status 'pending'.",
+      "id": "REQ-15",
+      "requirement": "Rescuing a monster triggers a +20 XP backend mutation via the same backend XP mutation used for lock/unlock actions.",
+      "reason": "In CameraARActionBar.tsx, handleRescue only adds a gameplay history event and calls queryClient.invalidateQueries + refresh(). There is no call to a backend mutation (e.g., captureMonster or equivalent) that persists the +20 XP to the backend actor. The AC states the XP delta must be applied via the same backend XP mutation used for lock/unlock actions, but no such mutation call is present in the diff.",
       "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "requirement": "Enable monster rescue in the AR camera view with backend capture mutation, mockGameplayState update, SpawnCollectFX effect, and useGameplayHistory event.",
-      "reason": "No frontend source files were modified. The project_state.json only records this as a pending feature request (AR-4) with status 'pending'.",
-      "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "requirement": "Ensure Leaflet map spawn markers reflect lock state and monster rescue state from localStorage, with distinct visual styles for locked/captured states.",
-      "reason": "No frontend source files were modified. The project_state.json only records this as a pending feature request (AR-5) with status 'pending'.",
-      "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "Move the footer visually higher on all pages by reducing bottom padding/margin without scrolling page content upward.",
-      "reason": "No frontend source files were modified. The project_state.json only records this as a pending feature request (AR-6) with status 'pending'.",
-      "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "requirement": "Remove all references to 'Caffeine' from Footer.tsx and any other footer or page-level attribution text.",
-      "reason": "No frontend source files were modified. The project_state.json only records this as a pending feature request (AR-7) with status 'pending'.",
-      "evidence": [
-        "project_state.json"
+        "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.97,
+  "hallucinated_features": [
+    {
+      "description": "Upload progress tracking for profile photo with uploadProgress state and withUploadProgress callback on ExternalBlob",
+      "reason": "The build request (REQ-14) only requires uploading a photo blob to the backend and displaying it. It does not request a progress indicator or progress percentage UI. The diff adds setUploadProgress state and a withUploadProgress callback on the ExternalBlob, which was not requested.",
+      "evidence": [
+        "frontend/src/components/sections/Profile.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.82,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+    "frontend/src/components/sections/HUD.tsx",
+    "frontend/src/components/sections/HomeSpaceBackground.tsx",
+    "frontend/src/components/sections/Profile.tsx",
     "project_state.json"
   ]
 }

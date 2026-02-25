@@ -4,6 +4,7 @@ import { Menu, Globe, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { useGameState } from '@/contexts/GameStateContext';
+import { useGetCallerUserProfile } from '@/hooks/useQueries';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,10 +24,15 @@ export default function Header({ activeSection, onNavigate, onMenuClick }: Heade
   const { t, language, setLanguage } = useLanguage();
   const { identity, clear } = useInternetIdentity();
   const { unlockedBalance, lockedBalance, playerState, refresh } = useGameState();
+  const { data: userProfile } = useGetCallerUserProfile();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isAuthenticated = !!identity;
   const xp = Number(playerState?.xp ?? 0);
+
+  // Derive photo URL from profile
+  const photoUrl = userProfile?.photoUrl ? userProfile.photoUrl.getDirectURL() : null;
+  const displayName = userProfile?.name ?? 'Player';
 
   const handleLogout = async () => {
     await clear();
@@ -101,19 +107,77 @@ export default function Header({ activeSection, onNavigate, onMenuClick }: Heade
           {isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700]/10 h-9 text-xs px-2">
-                  <span className="hidden sm:inline">Account</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-[#FFD700] text-[#FFD700] hover:bg-[#FFD700]/10 h-9 text-xs px-2 gap-1.5"
+                >
+                  {/* Avatar thumbnail */}
+                  <div
+                    className="w-5 h-5 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-[9px] font-bold"
+                    style={{ background: 'rgba(255,215,0,0.2)', border: '1px solid #FFD700' }}
+                  >
+                    {photoUrl ? (
+                      <img src={photoUrl} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <img
+                        src="/assets/generated/avatar-default.dim_128x128.png"
+                        alt="avatar"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) parent.textContent = displayName[0]?.toUpperCase() ?? '?';
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span className="hidden sm:inline max-w-[80px] truncate">{displayName}</span>
                   <span className="sm:hidden">•••</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-black/95 border-[#FFD700]/30 min-w-[180px]">
+              <DropdownMenuContent align="end" className="bg-black/95 border-[#FFD700]/30 min-w-[200px]">
+                {/* Profile info */}
+                <div className="px-3 py-2 flex items-center gap-2">
+                  <div
+                    className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                    style={{ background: 'rgba(255,215,0,0.15)', border: '1.5px solid #FFD700', color: '#FFD700' }}
+                  >
+                    {photoUrl ? (
+                      <img src={photoUrl} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <img
+                        src="/assets/generated/avatar-default.dim_128x128.png"
+                        alt="avatar"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) parent.textContent = displayName[0]?.toUpperCase() ?? '?';
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[#FFD700] font-bold text-sm leading-tight">{displayName}</p>
+                    <p className="text-white/40 text-[10px]">XP: {xp.toLocaleString()}</p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator className="bg-[#FFD700]/30" />
                 <div className="px-3 py-2 text-xs">
                   <p className="text-white/60 text-[10px]">QMY Balances</p>
                   <p className="text-green-500 font-bold text-sm">{unlockedBalance} Unlocked</p>
                   <p className="text-amber-500 font-bold text-sm">{lockedBalance} Locked</p>
-                  <p className="text-white/60 text-[10px] mt-1">XP: {xp}</p>
                 </div>
                 <DropdownMenuSeparator className="bg-[#FFD700]/30" />
+                <DropdownMenuItem
+                  onClick={() => onNavigate('profile')}
+                  className="text-[#FFD700] hover:bg-[#FFD700]/10"
+                >
+                  View Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout} className="text-red-400 hover:bg-red-500/10">
                   Logout
                 </DropdownMenuItem>

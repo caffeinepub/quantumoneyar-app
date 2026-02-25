@@ -1,51 +1,49 @@
 {
   "name": "Quantumoney AR",
   "short_name": "QMY AR",
-  "description": "Augmented Reality game for collecting QMY coins and creatures",
+  "description": "Collect QMY coins in the real world with Augmented Reality",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#FFD700",
   "orientation": "portrait",
+  "background_color": "#050505",
+  "theme_color": "#FFD700",
+  "categories": ["games", "finance"],
   "icons": [
     {
       "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/assets/generated/pwa-icon-512.dim_512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/generated/app-icon.dim_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
     {
       "name": "AR Camera",
-      "short_name": "Camera",
-      "description": "Open AR Camera",
-      "url": "/ar",
-      "icons": [
-        {
-          "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "short_name": "AR",
+      "description": "Open AR Camera to collect QMY coins",
+      "url": "/?section=ar-view",
+      "icons": [{ "src": "/assets/generated/pwa-icon-192.dim_192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "Profile",
       "short_name": "Profile",
-      "description": "View Profile",
-      "url": "/profile",
-      "icons": [
-        {
-          "src": "/assets/generated/pwa-icon-192.dim_192x192.png",
-          "sizes": "192x192"
-        }
-      ]
+      "description": "View your QMY profile and stats",
+      "url": "/?section=profile",
+      "icons": [{ "src": "/assets/generated/pwa-icon-192.dim_192x192.png", "sizes": "192x192" }]
     }
-  ]
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }

@@ -1,65 +1,106 @@
 import React from 'react';
 import { calculateBearing, normalizeAngleDifference, projectToScreen } from './arMath';
 import { getSpriteForObject } from './sprites';
-import type { MockSpawn } from '@/lib/mockSpawns';
+import { useArInteractions } from '../../../hooks/useArInteractions';
+import type { MockSpawn } from '../../../lib/mockSpawns';
+
+interface Position {
+  latitude: number;
+  longitude: number;
+}
 
 interface OverlayLayerProps {
   visibleObjects: MockSpawn[];
-  userHeading: number;
-  isCoinLocked: (coinId: string) => boolean;
+  heading: number;
+  position: Position;
 }
 
-export function OverlayLayer({
-  visibleObjects,
-  userHeading,
-  isCoinLocked,
-}: OverlayLayerProps) {
-  const screenWidth = window.innerWidth;
+export default function OverlayLayer({ visibleObjects, heading, position }: OverlayLayerProps) {
+  const { isCoinLocked, isMonsterCaptured } = useArInteractions();
 
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 30 }}>
       {visibleObjects.map((obj) => {
-        // Use a fixed reference point for bearing (center of screen)
-        // projectToScreen returns { x: number (0-1), visible: boolean }
-        const bearing = calculateBearing(0, 0, obj.latitude, obj.longitude);
-        const pos = projectToScreen(bearing, userHeading);
+        // Calculate bearing from player to object
+        const bearing = calculateBearing(
+          position.latitude,
+          position.longitude,
+          obj.latitude,
+          obj.longitude
+        );
+
+        // Project to screen using existing arMath signature: (bearing, userHeading)
+        const pos = projectToScreen(bearing, heading);
 
         if (!pos.visible) return null;
 
+        // pos.x is 0..1, convert to percentage
+        const xPercent = pos.x * 100;
+
+        const isMonsterType =
+          obj.type === 'monster-common' ||
+          obj.type === 'monster-rare' ||
+          obj.type === 'monster-legendary';
+
+        const locked = !isMonsterType && isCoinLocked(obj.id);
+        const captured = isMonsterType && isMonsterCaptured(obj.id);
+
         const sprite = getSpriteForObject(obj);
-        const isCoin = obj.type === 'coin-unlocked' || obj.type === 'coin-locked';
-        const isLocked = isCoin && isCoinLocked(obj.id);
-        const screenX = pos.x * screenWidth;
-        const screenY = window.innerHeight * 0.45; // Fixed vertical center
 
         return (
           <div
             key={obj.id}
-            className="absolute transform -translate-x-1/2 -translate-y-1/2"
-            style={{ left: screenX, top: screenY }}
+            className="absolute flex flex-col items-center"
+            style={{
+              left: `${xPercent}%`,
+              top: '40%',
+              transform: 'translate(-50%, -50%)',
+            }}
           >
-            <div className="relative flex flex-col items-center">
-              {/* Sprite image */}
+            <div
+              className="relative"
+              style={{
+                filter: locked
+                  ? 'drop-shadow(0 0 8px #FFD700) brightness(1.3)'
+                  : captured
+                  ? 'drop-shadow(0 0 8px #B400FF) brightness(0.6) grayscale(0.5)'
+                  : 'drop-shadow(0 0 6px rgba(255,215,0,0.6))',
+                opacity: captured ? 0.5 : 1,
+              }}
+            >
               <img
                 src={sprite}
-                alt={obj.name}
-                className={`w-12 h-12 drop-shadow-lg ${
-                  isLocked
-                    ? 'filter brightness-75 saturate-50'
-                    : 'animate-pulse'
-                }`}
+                alt={obj.type}
+                className="w-16 h-16 object-contain"
+                draggable={false}
               />
-              {/* Lock indicator */}
-              {isLocked && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="text-black text-xs">🔒</span>
+              {locked && (
+                <div
+                  className="absolute -top-2 -right-2 text-xs font-bold px-1 rounded"
+                  style={{ background: '#FFD700', color: '#000' }}
+                >
+                  🔒
                 </div>
               )}
-              {/* Label */}
-              <span className="mt-1 text-xs text-white bg-black/60 rounded px-1 py-0.5 whitespace-nowrap">
-                {isLocked ? '🔒 Locked' : obj.name}
-              </span>
+              {captured && (
+                <div
+                  className="absolute -top-2 -right-2 text-xs font-bold px-1 rounded"
+                  style={{ background: '#B400FF', color: '#fff' }}
+                >
+                  ✓
+                </div>
+              )}
             </div>
+            <span
+              className="text-xs font-bold mt-1 px-2 py-0.5 rounded"
+              style={{
+                background: 'rgba(0,0,0,0.6)',
+                color: locked ? '#FFD700' : captured ? '#E0A0FF' : '#fff',
+                border: `1px solid ${locked ? '#FFD700' : captured ? '#B400FF' : 'rgba(255,255,255,0.3)'}`,
+              }}
+            >
+              {isMonsterType ? obj.name : locked ? 'Locked' : 'QMY'}
+            </span>
           </div>
         );
       })}

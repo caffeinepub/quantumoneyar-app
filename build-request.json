@@ -1,119 +1,140 @@
 {
   "kind": "build_request",
-  "title": "Activate AR Lock/Unlock Buttons, Enable Monster Rescue, and Fix All Page Footers",
-  "projectName": "Quantumoney AR",
-  "priority": "high",
+  "title": "QuantumoneyAR final sync: profile photo, monster XP, home background, footer ICP reference",
+  "projectName": "QuantumoneyAR",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Activate the Lock and Unlock buttons in the AR camera view (CameraARActionBar) so that players can trigger lock and unlock coin interactions on visible AR spawn objects. The buttons must call the existing useLockCoin and useUnlockCoin mutations from useArActions.ts, passing the correct spawn/coin ID. Show loading states during the async call, and reflect the updated lock state on the overlay sprite via useArInteractions. On success, persist the new lock state via arInteractionsStore and sync the local mockGameplayState.",
-      "target": "frontend",
+      "id": "REQ-14",
+      "text": "Add the ability for authenticated users to choose and upload a personal profile photo from the Profile page (Profile.tsx). Store the photo as a blob in the backend actor per principal. Display the chosen photo in the Profile page header and in the Header component auth dropdown. Fall back to a default avatar icon if no photo is set.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-3"
         ],
         "quotes": [
-          "activar os botões de bloquear e desbloquear que estão na AR para que o jogo fique jogável e se possa começar a bloquear e desbloquear moedas"
+          "Editar perfil: permitir escolha de foto pessoal."
         ]
       },
       "acceptanceCriteria": [
-        "Tapping the Lock button on a visible AR coin triggers the lockCoin backend call and shows a loading indicator.",
-        "Tapping the Unlock button on a locked AR coin triggers the unlockCoin backend call and shows a loading indicator.",
-        "After a successful lock/unlock, the coin's overlay sprite updates to reflect the new lock state.",
-        "The lock state is persisted in arInteractionsStore (localStorage) immediately after the backend call succeeds.",
-        "Buttons are disabled (not hidden) when no eligible coin/monster is selected or in view."
+        "An 'Edit Photo' button is visible on the Profile page for authenticated users.",
+        "Clicking the button opens a file picker limited to image types.",
+        "The selected image is uploaded to the backend and persisted per principal.",
+        "The profile photo is displayed in Profile.tsx and in the Header auth dropdown.",
+        "If no photo is set, a default avatar placeholder is shown.",
+        "Photo changes made in the app are reflected on next load without a hard refresh."
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Enable monster rescue in the AR camera view. When a monster spawn is visible and in range in the AR overlay, allow the player to interact with it (via the existing action bar or a dedicated 'Rescue' button) to capture/rescue the monster. On rescue, call the appropriate backend mutation, update the monster's captured state in mockGameplayState, and add a gameplay history event of type 'creature-capture' via useGameplayHistory. Show a SpawnCollectFX visual effect on successful rescue.",
-      "target": "frontend",
+      "id": "REQ-15",
+      "text": "Award +20 XP to the player whenever a monster is successfully rescued/captured in the AR camera view (CameraARActionBar / monster rescue flow). This XP delta must be applied via the same backend XP mutation used for lock/unlock actions and must also be reflected immediately in the frontend GameStateContext and Profile page.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-3"
         ],
         "quotes": [
-          "resgatar monstros que estejam distribuídos e assinalados no mapa da aplicação"
+          "Capturar 1 Monstro → +20 XP"
         ]
       },
       "acceptanceCriteria": [
-        "When a monster spawn is visible in AR and within the player's XP-based tolerance radius, a rescue action is available in the AR action bar.",
-        "Tapping rescue triggers the backend capture mutation and a loading state.",
-        "On success, the monster is marked as captured in mockGameplayState and the overlay sprite reflects the captured state.",
-        "A SpawnCollectFX animation plays on successful monster rescue.",
-        "A 'creature-capture' gameplay history event is recorded via useGameplayHistory."
+        "Rescuing a monster in the AR view triggers a +20 XP backend mutation.",
+        "The XP increase is reflected immediately in the Header auth dropdown balance display.",
+        "The Profile page XP counter updates after a monster rescue without requiring a manual refresh.",
+        "The +20 XP delta is consistent whether the monster is rescued via the AR Rescue button or any equivalent action.",
+        "The gameplay history event added via useGameplayHistory records the +20 XP gain."
       ]
     },
     {
-      "id": "REQ-3",
-      "text": "Ensure the spawn markers displayed on the Leaflet map (/map/index.html and LeafletMapPage / MapMundoLeaflet components) reflect the current lock state and monster rescue state from localStorage (arInteractionsStore / mockGameplayState), so that coins and monsters already interacted with in AR are visually marked as locked/captured on the map.",
+      "id": "REQ-16",
+      "text": "Implement a dynamic animated space background on the HOME / HUD page using the existing HomeSpaceBackground canvas component. The background must render twinkling stars, floating planets, comets, and slowly drifting golden ICP and QMY coin images. Ensure the component is actively rendered on the HUD/Home section and is not obstructed by overlaid cards.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-3"
         ],
         "quotes": [
-          "monstros que estejam distribuídos e assinalados no mapa da aplicação"
+          "Página HOME: fundo dinâmico do espaço com estrelas, planetas, cometas, e moedas ICP e QMY douradas brilhantes flutuando suavemente."
         ]
       },
       "acceptanceCriteria": [
-        "Locked coins appear with a distinct locked marker style on the Leaflet map.",
-        "Captured monsters appear with a distinct captured marker style on the Leaflet map.",
-        "Map markers update when the player returns to the map after AR interactions."
+        "The HOME / HUD section renders the HomeSpaceBackground canvas as a full-screen fixed backdrop.",
+        "Stars twinkle, planets float, and comets animate across the canvas.",
+        "Golden ICP and QMY coin images drift smoothly across the screen.",
+        "The animation runs without blocking UI interaction on top of it.",
+        "The background is not visible on other pages (AR, Map, Profile, etc.)."
       ]
     },
     {
-      "id": "REQ-4",
-      "text": "Move the footer visually higher on all pages throughout the application (including HUD, Profile, Map, AR, legal pages, and any other pages that have a footer) by reducing bottom padding/margin so the footer is closer to the last content section, without scrolling page content upward or changing page layout. The footer must remain at the bottom of its container but with less dead space below content.",
+      "id": "REQ-17",
+      "text": "Add a reference to the ICP cryptocurrency in the Footer component (Footer.tsx), alongside the existing social share links (WhatsApp, X, Telegram, Instagram). The ICP reference must include the ICP logo/icon and a short label (e.g., 'Powered by ICP'). The footer must remain compact in height and must not include any Caffeine branding.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-3"
         ],
         "quotes": [
-          "Quero os rodapés das páginas todas mais acima",
-          "não quero subir as páginas mas sim subir os rodapés das páginas todas"
+          "Referência à criptomoeda ICP",
+          "Rodapé deve incluir apenas: Partilha social: WhatsApp, X, Telegram e Instagram, Referência à criptomoeda ICP"
         ]
       },
       "acceptanceCriteria": [
-        "On all pages that render the Footer component, the footer appears closer to the page content with reduced bottom spacing.",
-        "No page content is shifted upward — only the footer's vertical position relative to content is adjusted.",
-        "The footer is consistently positioned across all pages (Home, Profile, Map, AR, legal pages)."
+        "The Footer component displays the ICP logo/icon and a 'Powered by ICP' label.",
+        "The ICP reference is displayed alongside (not replacing) the four social share links.",
+        "No Caffeine branding appears anywhere in the footer.",
+        "The footer remains compact and does not overlap the bottom navigation bar.",
+        "The ICP logo links to the Internet Computer official website (https://internetcomputer.org)."
       ]
     },
     {
-      "id": "REQ-5",
-      "text": "Remove all references to 'Caffeine' (including the word 'Caffeine', any 'Built with Caffeine', 'Powered by Caffeine', or similar attributions) from the footer component (Footer.tsx) and from any other footer or page-level attribution text across the entire application.",
-      "target": "frontend",
+      "id": "REQ-18",
+      "text": "Ensure the Profile page (Profile.tsx) displays the player's username/display name as stored in the backend user profile (e.g., 'HTgamers'), synced via the same Internet Identity principal used on Quantumoney.app. The name must be editable inline on the Profile page and persisted to the backend actor so that changes reflect on both apps.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-3"
         ],
         "quotes": [
-          "não quero referências à Caffeine nem palavras Caffeine nos rodapés"
+          "Login via Internet Identity, mesmo ID que no site, mantendo o nome de perfil já definido (ex: HTgamers).",
+          "Perfil sincronizado: alterações feitas no site ou na aplicação refletem-se automaticamente em ambos."
         ]
       },
       "acceptanceCriteria": [
-        "The Footer component contains no text or links referencing 'Caffeine'.",
-        "No other page-level component renders any Caffeine attribution text.",
-        "The footer retains only the social media links and 'By HTgamers' attribution."
+        "The Profile page shows the authenticated user's display name fetched from the backend.",
+        "The display name defaults to the one already set on Quantumoney.app for the same principal.",
+        "An inline edit control allows changing the display name.",
+        "Saving the new name persists it to the backend actor via a mutation.",
+        "The updated name is visible in the Header auth dropdown after saving."
       ]
     }
   ],
   "constraints": [
-    "Do not change the backend schema or data model — only call existing backend endpoints for lock, unlock, and capture.",
-    "Do not scroll or shift page content upward when adjusting footer position — only reduce spacing around/above the footer.",
-    "Immutable frontend paths (hooks/useInternetIdentity.ts, hooks/useActor.ts, main.tsx, components/ui) must not be modified."
+    "Do not modify any file listed under frontend.immutablePaths.",
+    "Do not introduce any new canister IDs; use only the Carteira A canisters already configured: crjop-jyaaa-aaaah-atfaq-cai, whu4t-kiaaa-aaaah-qsc5q-cai, nemlr-6aaaa-aaaan-q32la-cai, ckmsk-taaaa-aaaah-atfca-cai, 5o54h-giaaa-aaaad-aentq-cai.",
+    "Do not alter the layout or functionality of any existing page beyond what is explicitly requested.",
+    "The footer must remain compact and must not overlap the bottom navigation bar.",
+    "All user-facing text must be in English."
   ],
   "nonGoals": [
-    "Adding new backend canister methods beyond what already exists for lock/unlock/capture.",
-    "Implementing real-time WebSocket-based map updates.",
-    "Redesigning the AR camera UI beyond activating the existing buttons.",
-    "Adding new social media links to the footer.",
-    "Changing page layout, navigation, or scroll behaviour."
+    "Re-implementing AR lock/unlock button activation (already covered by existing feature).",
+    "Re-implementing monster rescue flow (already covered by existing feature).",
+    "Re-implementing Leaflet map state sync (already covered by existing feature).",
+    "Re-implementing the XP and welcome bonus system base rules (already covered by existing feature).",
+    "Re-implementing PWA install prompt and service worker (already covered by existing feature).",
+    "Re-implementing the full canister configuration (already covered by existing feature).",
+    "Re-implementing the unified Profile page base structure (already covered by existing feature).",
+    "Re-implementing cross-app synchronization architecture (already covered by existing feature).",
+    "Re-implementing the compact footer with social share links (already covered by existing feature).",
+    "Re-implementing the global gold/yellow visual theme (already covered by existing feature).",
+    "Adding any new pages or navigation items not mentioned in this request.",
+    "Implementing real-money or token transfer functionality."
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Golden ICP coin illustration with glowing metallic finish, circular shape with ICP logo centered (icp-coin-gold.dim_128x128.png)",
+      "Golden QMY coin illustration with glowing metallic finish, circular shape with QMY text centered (qmy-coin-gold.dim_128x128.png)",
+      "Default user avatar placeholder icon, neutral silhouette on dark transparent background (avatar-default.dim_128x128.png)"
+    ],
     "edits": []
   }
 }

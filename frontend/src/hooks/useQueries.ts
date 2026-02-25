@@ -1,13 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { useInternetIdentity } from './useInternetIdentity';
-import type { PlayerState, UserProfile, Bonus } from '../backend';
+import { UserProfile, Bonus, PlayerState } from '../backend';
 
-// ─── Player State ────────────────────────────────────────────────────────────
+export interface GeoPoint {
+  latitude: number;
+  longitude: number;
+  label?: string;
+}
+
+export interface GeoType {
+  id: string;
+  lat: number;
+  lng: number;
+  type: string;
+}
 
 export function useGetPlayerState() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<PlayerState>({
     queryKey: ['playerState'],
@@ -15,18 +24,14 @@ export function useGetPlayerState() {
       if (!actor) throw new Error('Actor not available');
       return actor.getPlayerState();
     },
-    enabled: !!actor && !isFetching && !!identity,
+    enabled: !!actor && !actorFetching,
     staleTime: 0,
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
   });
 }
 
-// ─── User Profile ─────────────────────────────────────────────────────────────
-
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
@@ -34,7 +39,7 @@ export function useGetCallerUserProfile() {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching && !!identity,
+    enabled: !!actor && !actorFetching,
     retry: false,
   });
 
@@ -60,20 +65,17 @@ export function useSaveCallerUserProfile() {
   });
 }
 
-// ─── Bonus / Vesting ──────────────────────────────────────────────────────────
-
 export function useGetClaimBonus() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
 
   return useQuery<Bonus | null>({
     queryKey: ['claimBonus'],
     queryFn: async () => {
-      if (!actor) return null;
+      if (!actor) throw new Error('Actor not available');
       return actor.getClaimBonus();
     },
-    enabled: !!actor && !isFetching && !!identity,
-    staleTime: 0,
+    enabled: !!actor && !actorFetching,
+    staleTime: 30_000,
     refetchOnWindowFocus: true,
   });
 }
@@ -94,24 +96,21 @@ export function useClaimBonus() {
   });
 }
 
-// ─── Geo Types (used by AR/Map) ───────────────────────────────────────────────
-
-export type GeoPoint = {
-  id: string;
-  lat: number;
-  lng: number;
-  type: string;
-};
-
-export type GeoType = 'coin' | 'monster' | 'portal';
-
-// ─── QMY Sync (legacy compatibility) ─────────────────────────────────────────
-
 export function useQmySync() {
-  const { data: playerState } = useGetPlayerState();
-  return {
-    xp: Number(playerState?.xp ?? 0),
-    coinLocks: playerState?.coinLocks ?? [],
-    monsters: playerState?.monsters ?? [],
-  };
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['qmySync'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      const [playerState, bonus] = await Promise.all([
+        actor.getPlayerState(),
+        actor.getClaimBonus(),
+      ]);
+      return { playerState, bonus };
+    },
+    enabled: !!actor && !actorFetching,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
 }

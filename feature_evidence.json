@@ -1,4 +1,123 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-add-the-ability-for-authenticated-users-to-choose-and-upload-a-personal-profile-photo-from-the-profile-page-profile-tsx-store-the-photo-as-a-blob-in-the-backend-actor-per-principal-display-the-chosen-photo-in-the-profile-page-header-and-in-the-header-component-auth-dropdown-fall-back-to-a-default-avatar-icon-if-no-photo-is-set",
+      "featureTitle": "Add the ability for authenticated users to choose and upload a personal profile photo from the Profile page (Profile.tsx). Store the photo as a blob in the backend actor per principal. Display the chosen photo in the Profile page header and in the Header component auth dropdown. Fall back to a default avatar icon if no photo is set.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/sections/Profile.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-14"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-award-20-xp-to-the-player-whenever-a-monster-is-successfully-rescued-captured-in-the-ar-camera-view-cameraaractionbar-monster-rescue-flow-this-xp-delta-must-be-applied-via-the-same-backend-xp-mutation-used-for-lock-unlock-actions-and-must-also-be-reflected-immediately-in-the-frontend-gamestatecontext-and-profile-page",
+      "featureTitle": "Award +20 XP to the player whenever a monster is successfully rescued/captured in the AR camera view (CameraARActionBar / monster rescue flow). This XP delta must be applied via the same backend XP mutation used for lock/unlock actions and must also be reflected immediately in the frontend GameStateContext and Profile page.",
+      "files": [
+        "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-15"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-implement-a-dynamic-animated-space-background-on-the-home-hud-page-using-the-existing-homespacebackground-canvas-component-the-background-must-render-twinkling-stars-floating-planets-comets-and-slowly-drifting-golden-icp-and-qmy-coin-images-ensure-the-component-is-actively-rendered-on-the-hud-home-section-and-is-not-obstructed-by-overlaid-cards",
+      "featureTitle": "Implement a dynamic animated space background on the HOME / HUD page using the existing HomeSpaceBackground canvas component. The background must render twinkling stars, floating planets, comets, and slowly drifting golden ICP and QMY coin images. Ensure the component is actively rendered on the HUD/Home section and is not obstructed by overlaid cards.",
+      "files": [
+        "frontend/src/components/sections/HUD.tsx",
+        "frontend/src/components/sections/HomeSpaceBackground.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-16"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-reference-to-the-icp-cryptocurrency-in-the-footer-component-footer-tsx-alongside-the-existing-social-share-links-whatsapp-x-telegram-instagram-the-icp-reference-must-include-the-icp-logo-icon-and-a-short-label-e-g-powered-by-icp-the-footer-must-remain-compact-in-height-and-must-not-include-any-caffeine-branding",
+      "featureTitle": "Add a reference to the ICP cryptocurrency in the Footer component (Footer.tsx), alongside the existing social share links (WhatsApp, X, Telegram, Instagram). The ICP reference must include the ICP logo/icon and a short label (e.g., 'Powered by ICP'). The footer must remain compact in height and must not include any Caffeine branding.",
+      "files": [
+        "frontend/src/components/Footer.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-17"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-profile-page-profile-tsx-displays-the-player-s-username-display-name-as-stored-in-the-backend-user-profile-e-g-htgamers-synced-via-the-same-internet-identity-principal-used-on-quantumoney-app-the-name-must-be-editable-inline-on-the-profile-page-and-persisted-to-the-backend-actor-so-that-changes-reflect-on-both-apps",
+      "featureTitle": "Ensure the Profile page (Profile.tsx) displays the player's username/display name as stored in the backend user profile (e.g., 'HTgamers'), synced via the same Internet Identity principal used on Quantumoney.app. The name must be editable inline on the Profile page and persisted to the backend actor so that changes reflect on both apps.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/sections/Profile.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-18"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

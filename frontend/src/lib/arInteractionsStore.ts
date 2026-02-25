@@ -1,87 +1,73 @@
-/**
- * Demoted localStorage store to a non-authoritative cache/mirror
- * No rules enforcement, no XP checks, no unlock limits
- * Store only the last known canister state snapshot needed for existing non-React consumers
- */
+// Non-authoritative localStorage cache/mirror for AR interaction states.
+// The canister-backed PlayerState is the source of truth.
 
-export interface CoinLockState {
-  coinId: string;
-  lockedBy: string;
-  lockedAt: number;
-  isLocked: boolean;
+const STORAGE_KEY = 'qmy_ar_interactions_v2';
+
+interface ARInteractionsState {
+  lockedCoins: Record<string, boolean>;
+  capturedMonsters: Record<string, boolean>;
 }
 
-export interface UnlockCounter {
-  count: number;
-  timestamps: number[];
+function loadState(): ARInteractionsState {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {
+    // ignore
+  }
+  return { lockedCoins: {}, capturedMonsters: {} };
 }
 
-interface ArInteractionsState {
-  coinLocks: Record<string, CoinLockState>;
-  unlockCounters: Record<string, UnlockCounter>;
-  currentlyUnlocked: Record<string, string | null>;
+function saveState(state: ARInteractionsState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    // Emit storage event for cross-tab sync
+    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
+  } catch {
+    // ignore
+  }
 }
 
-const STORAGE_KEY = 'quantumoney_ar_interactions';
+export const arInteractionsStore = {
+  getState(): ARInteractionsState {
+    return loadState();
+  },
 
-function loadState(): ArInteractionsState {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      // Fall through to default
+  setLocked(coinId: string, locked: boolean) {
+    const state = loadState();
+    state.lockedCoins[coinId] = locked;
+    saveState(state);
+  },
+
+  setCaptured(monsterId: string, captured: boolean) {
+    const state = loadState();
+    state.capturedMonsters[monsterId] = captured;
+    saveState(state);
+  },
+
+  isCoinLocked(coinId: string): boolean {
+    return loadState().lockedCoins[coinId] === true;
+  },
+
+  isMonsterCaptured(monsterId: string): boolean {
+    return loadState().capturedMonsters[monsterId] === true;
+  },
+
+  syncFromPlayerState(playerState: {
+    coinLocks: Array<{ id: string; locked: boolean }>;
+    monsters: Array<{ id: string; captured: boolean }>;
+  }) {
+    const state: ARInteractionsState = { lockedCoins: {}, capturedMonsters: {} };
+    for (const coin of playerState.coinLocks) {
+      state.lockedCoins[coin.id] = coin.locked;
     }
-  }
-  return {
-    coinLocks: {},
-    unlockCounters: {},
-    currentlyUnlocked: {},
-  };
-}
+    for (const monster of playerState.monsters) {
+      state.capturedMonsters[monster.id] = monster.captured;
+    }
+    saveState(state);
+  },
 
-function saveState(state: ArInteractionsState): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  window.dispatchEvent(new Event('ar-interactions-changed'));
-}
-
-export function getCoinLockState(coinId: string): CoinLockState | null {
-  const state = loadState();
-  return state.coinLocks[coinId] || null;
-}
-
-export function isCoinLocked(coinId: string): boolean {
-  const lockState = getCoinLockState(coinId);
-  return lockState?.isLocked || false;
-}
-
-// Mirror functions for non-authoritative cache updates
-export function mirrorCoinLock(coinId: string, principal: string): void {
-  const state = loadState();
-  state.coinLocks[coinId] = {
-    coinId,
-    lockedBy: principal,
-    lockedAt: Date.now(),
-    isLocked: true,
-  };
-  saveState(state);
-}
-
-export function mirrorCoinUnlock(coinId: string): void {
-  const state = loadState();
-  if (state.coinLocks[coinId]) {
-    state.coinLocks[coinId].isLocked = false;
-  }
-  saveState(state);
-}
-
-export function subscribeToArInteractions(callback: () => void): () => void {
-  const handler = () => callback();
-  window.addEventListener('storage', handler);
-  window.addEventListener('ar-interactions-changed', handler);
-  
-  return () => {
-    window.removeEventListener('storage', handler);
-    window.removeEventListener('ar-interactions-changed', handler);
-  };
-}
+  clear() {
+    localStorage.removeItem(STORAGE_KEY);
+  },
+};

@@ -1,26 +1,147 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
-  "summary": "AR-based game app (quantumoneyar.app / quantumoney.app) where players lock/unlock coins and rescue monsters distributed on a map using AR camera features.",
+  "projectStateVersion": 7,
+  "summary": "AR-based PWA game app (quantumoneyar.app / quantumoney.app) where players lock/unlock QMY coins and rescue monsters distributed on a map using AR camera features. The app must be fully synchronized with quantumoney.app using the Carteira A canisters (ICP). Includes Internet Identity login (shared ID with site, preserving profile name), unified Profile page with photo editing, XP system (capturing 1 monster = +20 XP added), welcome bonus, dynamic space HOME background, Leaflet map identical to site, PWA installability, and a footer with only social share links (WhatsApp, X, Telegram, Instagram) plus ICP reference with no Caffeine branding.",
   "architectural_notes": [
     "App uses AR camera features for gameplay (lock/unlock coins, rescue monsters on map)",
-    "Two linked properties: app at https://quantumoneyar.app and site at https://quantumoney.app"
+    "Two linked properties: app at https://quantumoneyar.app and site at https://quantumoney.app",
+    "All AR app data must use exclusively Carteira A canisters (ICP). Main Account: 4eda1ee6641b1eafc87b96c0bb98b8afd04ab5ac5d60c4e4b04fab50b9284bae; Principal: e3cl3-r5p4k-yojw3-6cniv-vat7x-ojzgv-zqxvo-72lff-l7sjk-4fxyj-wae",
+    "App must be a PWA (installable, service worker, offline cache, icon, splash screen)",
+    "Authentication via Internet Identity; unified Profile page (no separate wallet/profile pages)",
+    "Visual style: yellow text and borders, transparent windows — consistent with quantumoney.app",
+    "Capturing 1 monster awards +20 XP (in addition to existing lock/unlock XP rules)"
   ],
   "known_issues": [
     "Lock and unlock buttons in AR are currently inactive/non-functional"
   ],
   "isFixRequest": false,
-  "existing_features": [],
+  "imageRequirements": "## Required Images\n- Golden ICP coin illustration with glowing metallic finish, circular shape with ICP logo centered (icp-coin-gold.dim_128x128.png)\n- Golden QMY coin illustration with glowing metallic finish, circular shape with QMY text centered (qmy-coin-gold.dim_128x128.png)\n- Default user avatar placeholder icon, neutral silhouette on dark transparent background (avatar-default.dim_128x128.png)",
+  "existing_features": [
+    {
+      "id": "feature-activate-the-lock-and-unlock-buttons-in-the-ar-camera-view-cameraaractionbar-the-buttons-must-call-the-existing-uselockcoin-and-useunlockcoin-mutations-from-usearactions-ts-passing-the-correct-spawn-coin-id-of-the-currently-selected-visible-ar-object-show-loading-spinners-on-the-buttons-during-the-async-call-on-success-persist-the-new-lock-state-via-arinteractionsstore-and-sync-mockgameplaystate-reflect-the-updated-lock-state-on-the-overlaylayer-sprite-via-usearinteractions",
+      "title": "Activate the Lock and Unlock buttons in the AR camera view (CameraARActionBar). The buttons must call the existing useLockCoin and useUnlockCoin mutations from useArActions.ts, passing the correct spawn/coin ID of the currently selected visible AR object. Show loading spinners on the buttons during the async call. On success, persist the new lock state via arInteractionsStore and sync mockGameplayState. Reflect the updated lock state on the OverlayLayer sprite via useArInteractions.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enable-monster-rescue-in-the-ar-camera-view-when-a-monster-spawn-is-visible-and-in-range-in-the-ar-overlay-display-a-rescue-button-allowing-the-player-to-rescue-the-monster-on-rescue-call-the-appropriate-backend-mutation-update-the-monster-captured-state-in-mockgameplaystate-add-a-gameplay-history-event-of-type-creature-capture-via-usegameplayhistory-and-display-a-spawncollectfx-visual-effect-on-successful-rescue",
+      "title": "Enable monster rescue in the AR camera view. When a monster spawn is visible and in range in the AR overlay, display a Rescue button allowing the player to rescue the monster. On rescue, call the appropriate backend mutation, update the monster captured state in mockGameplayState, add a gameplay history event of type creature-capture via useGameplayHistory, and display a SpawnCollectFX visual effect on successful rescue.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-spawn-markers-on-the-leaflet-map-both-public-map-map-js-and-the-leafletmappage-mapmundoleaflet-react-components-reflect-current-lock-and-capture-states-from-localstorage-arinteractionsstore-and-mockgameplaystate-coins-already-locked-in-ar-must-appear-visually-as-locked-on-the-map-monsters-already-captured-must-appear-visually-as-captured",
+      "title": "Ensure spawn markers on the Leaflet map (both /public/map/map.js and the LeafletMapPage / MapMundoLeaflet React components) reflect current lock and capture states from localStorage (arInteractionsStore and mockGameplayState). Coins already locked in AR must appear visually as locked on the map; monsters already captured must appear visually as captured.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-configure-the-entire-app-to-use-exclusively-the-carteira-a-canisters-replace-any-old-or-test-canister-ids-throughout-the-codebase-with-frontend-website-crjop-jyaaa-aaaah-atfaq-cai-gold-paper-whu4t-kiaaa-aaaah-qsc5q-cai-governance-nemlr-6aaaa-aaaan-q32la-cai-logic-ckmsk-taaaa-aaaah-atfca-cai-ledger-5o54h-giaaa-aaaad-aentq-cai-main-icp-account-id-4eda1ee6641b1eafc87b96c0bb98b8afd04ab5ac5d60c4e4b04fab50b9284bae-controller-principal-e3cl3-r5p4k-yojw3-6cniv-vat7x-ojzgv-zqxvo-72lff-l7sjk-4fxyj-wae",
+      "title": "Configure the entire app to use exclusively the Carteira A canisters. Replace any old or test canister IDs throughout the codebase with: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper whu4t-kiaaa-aaaah-qsc5q-cai, Governance nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, Ledger 5o54h-giaaa-aaaad-aentq-cai. Main ICP Account ID: 4eda1ee6641b1eafc87b96c0bb98b8afd04ab5ac5d60c4e4b04fab50b9284bae. Controller Principal: e3cl3-r5p4k-yojw3-6cniv-vat7x-ojzgv-zqxvo-72lff-l7sjk-4fxyj-wae.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-unified-profile-page-in-the-existing-profile-tsx-that-shows-the-authenticated-user-wallet-balance-xp-locked-and-unlocked-coin-counts-and-player-stats-in-a-single-page-do-not-create-separate-wallet-or-profile-pages-visual-style-must-match-the-site-yellow-gold-text-and-borders-transparent-panel-backgrounds",
+      "title": "Implement a unified Profile page in the existing Profile.tsx that shows the authenticated user wallet balance, XP, locked and unlocked coin counts, and player stats in a single page. Do not create separate wallet or profile pages. Visual style must match the site: yellow/gold text and borders, transparent panel backgrounds.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-xp-and-welcome-bonus-system-in-the-backend-and-frontend-new-players-receive-1000-qmy-100-unlocked-900-locked-in-monthly-vesting-of-100-qmy-over-9-months-plus-100-xp-on-first-login-locking-1-qmy-awards-10-xp-unlocking-1-qmy-deducts-15-xp-these-xp-changes-must-be-applied-every-time-a-lock-or-unlock-action-is-completed",
+      "title": "Implement the XP and welcome bonus system in the backend and frontend. New players receive 1000 QMY (100 unlocked + 900 locked in monthly vesting of 100 QMY over 9 months) plus 100 XP on first login. Locking 1 QMY awards +10 XP; unlocking 1 QMY deducts -15 XP. These XP changes must be applied every time a lock or unlock action is completed.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-app-is-a-fully-installable-pwa-the-index-html-must-include-a-working-install-app-prompt-the-service-worker-in-public-service-worker-js-must-be-active-with-offline-asset-caching-the-public-manifest-json-must-have-correct-icons-including-192x192-and-512x512-maskable-icons-and-a-splash-screen-configuration",
+      "title": "Ensure the app is a fully installable PWA. The index.html must include a working Install App prompt. The service worker in /public/service-worker.js must be active with offline asset caching. The /public/manifest.json must have correct icons including 192x192 and 512x512 maskable icons and a splash screen configuration.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-footer-on-all-pages-with-a-compact-footer-containing-only-social-share-links-for-whatsapp-x-twitter-telegram-and-instagram-remove-all-caffeine-branding-from-the-footer-the-footer-must-be-compact-in-height-and-must-not-interfere-with-the-bottom-navigation-bar",
+      "title": "Replace the footer on all pages with a compact footer containing only social share links for WhatsApp, X (Twitter), Telegram, and Instagram. Remove all Caffeine branding from the footer. The footer must be compact in height and must not interfere with the bottom navigation bar.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-synchronization-between-quantumoneyar-app-and-quantumoney-app-using-the-carteira-a-canisters-xp-values-locked-unlocked-coin-balances-monster-distribution-state-and-bonus-vesting-data-must-be-read-from-and-written-to-the-shared-canisters-so-both-apps-reflect-the-same-state-for-the-same-authenticated-user",
+      "title": "Implement synchronization between QuantumoneyAR.app and Quantumoney.app using the Carteira A canisters. XP values, locked/unlocked coin balances, monster distribution state, and bonus/vesting data must be read from and written to the shared canisters so both apps reflect the same state for the same authenticated user.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-apply-a-consistent-visual-theme-across-the-entire-app-gold-yellow-text-and-borders-transparent-glass-panel-backgrounds-dark-space-background-matching-the-quantumoney-app-site-palette-ensure-no-section-or-page-deviates-from-this-theme",
+      "title": "Apply a consistent visual theme across the entire app: gold/yellow text and borders, transparent/glass panel backgrounds, dark space background matching the Quantumoney.app site palette. Ensure no section or page deviates from this theme.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-ability-for-authenticated-users-to-choose-and-upload-a-personal-profile-photo-from-the-profile-page-profile-tsx-store-the-photo-as-a-blob-in-the-backend-actor-per-principal-display-the-chosen-photo-in-the-profile-page-header-and-in-the-header-component-auth-dropdown-fall-back-to-a-default-avatar-icon-if-no-photo-is-set",
+      "title": "Add the ability for authenticated users to choose and upload a personal profile photo from the Profile page (Profile.tsx). Store the photo as a blob in the backend actor per principal. Display the chosen photo in the Profile page header and in the Header component auth dropdown. Fall back to a default avatar icon if no photo is set.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-award-20-xp-to-the-player-whenever-a-monster-is-successfully-rescued-captured-in-the-ar-camera-view-cameraaractionbar-monster-rescue-flow-this-xp-delta-must-be-applied-via-the-same-backend-xp-mutation-used-for-lock-unlock-actions-and-must-also-be-reflected-immediately-in-the-frontend-gamestatecontext-and-profile-page",
+      "title": "Award +20 XP to the player whenever a monster is successfully rescued/captured in the AR camera view (CameraARActionBar / monster rescue flow). This XP delta must be applied via the same backend XP mutation used for lock/unlock actions and must also be reflected immediately in the frontend GameStateContext and Profile page.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-dynamic-animated-space-background-on-the-home-hud-page-using-the-existing-homespacebackground-canvas-component-the-background-must-render-twinkling-stars-floating-planets-comets-and-slowly-drifting-golden-icp-and-qmy-coin-images-ensure-the-component-is-actively-rendered-on-the-hud-home-section-and-is-not-obstructed-by-overlaid-cards",
+      "title": "Implement a dynamic animated space background on the HOME / HUD page using the existing HomeSpaceBackground canvas component. The background must render twinkling stars, floating planets, comets, and slowly drifting golden ICP and QMY coin images. Ensure the component is actively rendered on the HUD/Home section and is not obstructed by overlaid cards.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-reference-to-the-icp-cryptocurrency-in-the-footer-component-footer-tsx-alongside-the-existing-social-share-links-whatsapp-x-telegram-instagram-the-icp-reference-must-include-the-icp-logo-icon-and-a-short-label-e-g-powered-by-icp-the-footer-must-remain-compact-in-height-and-must-not-include-any-caffeine-branding",
+      "title": "Add a reference to the ICP cryptocurrency in the Footer component (Footer.tsx), alongside the existing social share links (WhatsApp, X, Telegram, Instagram). The ICP reference must include the ICP logo/icon and a short label (e.g., 'Powered by ICP'). The footer must remain compact in height and must not include any Caffeine branding.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-profile-page-profile-tsx-displays-the-player-s-username-display-name-as-stored-in-the-backend-user-profile-e-g-htgamers-synced-via-the-same-internet-identity-principal-used-on-quantumoney-app-the-name-must-be-editable-inline-on-the-profile-page-and-persisted-to-the-backend-actor-so-that-changes-reflect-on-both-apps",
+      "title": "Ensure the Profile page (Profile.tsx) displays the player's username/display name as stored in the backend user profile (e.g., 'HTgamers'), synced via the same Internet Identity principal used on Quantumoney.app. The name must be editable inline on the Profile page and persisted to the backend actor so that changes reflect on both apps.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
       "summary": "Activate lock and unlock buttons in AR so players can lock/unlock coins and rescue monsters marked on the map",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Move footers higher on all pages without scrolling the pages up; remove all references to 'Caffeine' from footers",
       "reqIds": [],
       "status": "pending"
     },
@@ -49,19 +170,57 @@
       "status": "pending"
     },
     {
-      "id": "AR-6",
-      "summary": "Move the footer visually higher on all pages throughout the application (including HUD, Profile, Map, AR, legal pages, and any other pages that have a footer) by reducing bottom padding/margin so the footer is closer to the last content section, without scrolling page content upward or changing page layout. The footer must remain at the bottom of its container but with less dead space below content.",
-      "reqIds": [
-        "REQ-4"
-      ],
+      "id": "AR-8",
+      "summary": "Use exclusively the Carteira A canisters for all AR app data: Frontend crjop-jyaaa-aaaah-atfaq-cai, Gold Paper whu4t-kiaaa-aaaah-qsc5q-cai, Governance nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, Ledger 5o54h-giaaa-aaaad-aentq-cai. Do not use old or test canisters.",
+      "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-7",
-      "summary": "Remove all references to 'Caffeine' (including the word 'Caffeine', any 'Built with Caffeine', 'Powered by Caffeine', or similar attributions) from the footer component (Footer.tsx) and from any other footer or page-level attribution text across the entire application.",
-      "reqIds": [
-        "REQ-5"
-      ],
+      "id": "AR-9",
+      "summary": "Implement Internet Identity login and a unified Profile page showing wallet balance, XP, coins (locked/unlocked), and player stats. No separate wallet or profile pages.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Implement XP and welcome bonus system: new players receive 1,000 QMY (100 unlocked + 900 locked in monthly vesting of 100 QMY over 9 months) + 100 XP. Locking 1 QMY = +10 XP; unlocking 1 QMY = -15 XP.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Make the AR app a fully installable PWA with install prompt, active service worker, offline asset caching, correct icon and splash screen.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Ensure full real-time synchronization between QuantumoneyAR.app and Quantumoney.app for XP, locked/unlocked coins, monster distribution, and bonuses.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Replace footer on all pages with only social share links: WhatsApp, X, Telegram, Instagram. No Caffeine branding. Footer must be low/compact.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Allow users to set/change a personal profile photo from the Profile page.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "HOME page must have a dynamic space background with stars, planets, comets, and floating golden ICP and QMY coins.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add ICP cryptocurrency reference to the footer (alongside existing social share links).",
+      "reqIds": [],
       "status": "pending"
     }
   ],

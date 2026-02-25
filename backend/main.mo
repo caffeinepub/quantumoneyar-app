@@ -7,25 +7,22 @@ import Text "mo:core/Text";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
-
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  // Type Definitions
   type UserID = Nat;
   public type Timestamp = Time.Time;
 
-  // User Management Types and Structures
   public type UserProfile = {
     name : Text;
     gender : ?Text;
@@ -36,7 +33,6 @@ actor {
   let userProfiles = Map.empty<UserID, UserProfile>();
   let principalToUserId = Map.empty<Principal, UserID>();
 
-  // UserID Generation
   var nextUserId : UserID = 1;
 
   func getOrCreateUserId(principal : Principal) : UserID {
@@ -89,7 +85,6 @@ actor {
     userProfiles.add(userId, profile);
   };
 
-  // vQMY Bonus Management Types and Structures
   public type Bonus = {
     unlocked : Float;
     locked : Float;
@@ -159,7 +154,6 @@ actor {
     registrationCount += 1;
   };
 
-  // System Statistics
   public query ({ caller }) func getBonusStats() : async { registrationCount : Nat; maxUsers : Nat; remaining : Nat } {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can view statistics");
@@ -185,7 +179,6 @@ actor {
     };
   };
 
-  // Quantumoney AR Types and Structures
   public type Monster = {
     id : Text;
     name : Text;
@@ -248,7 +241,6 @@ actor {
   let playerXP = Map.empty<UserID, Nat>();
   let unlockHistory = Map.empty<UserID, List.List<UnlockRecord>>();
 
-  // Gameplay Constants
   let UNLOCK_LIMIT_24H = 100 : Nat;
   let UNLOCK_XP_COST = 15 : Nat;
   let LOCK_XP_REWARD = 10 : Nat;
@@ -351,7 +343,6 @@ actor {
 
     let userId = getOrCreateUserId(caller);
 
-    // Verify coin is not already locked by this user
     if (isCoinLockedByUser(userId, coinId)) {
       Runtime.trap("Coin is already locked by you");
     };
@@ -372,7 +363,6 @@ actor {
     };
     coinLocks.add(userId, coinList);
 
-    // Add +10 XP reward
     addPlayerXP(userId, LOCK_XP_REWARD);
 
     let entry = {
@@ -413,18 +403,15 @@ actor {
 
     let userId = getOrCreateUserId(caller);
 
-    // Verify the coin is actually locked by this user
     if (not isCoinLockedByUser(userId, coinId)) {
       Runtime.trap("Unauthorized: Coin is not locked by you or does not exist");
     };
 
-    // Verify unlock limit (maximum 100 per 24 hours)
     let unlocksLast24h = countUnlocksLast24Hours(userId);
     if (unlocksLast24h >= UNLOCK_LIMIT_24H) {
       Runtime.trap("Unlock limit reached: maximum 100 unlocks per 24 hours");
     };
 
-    // Verify player has at least 15 XP and deduct it
     let currentXP = getPlayerXP(userId);
     if (currentXP < UNLOCK_XP_COST) {
       Runtime.trap("Insufficient XP: need at least " # UNLOCK_XP_COST.toText() # " XP to unlock");
@@ -450,7 +437,6 @@ actor {
     );
     coinLocks.add(userId, updatedCoinList);
 
-    // Register unlock action in history
     let unlockRecord = {
       timestamp = Time.now();
       coinId = coinId;
@@ -495,4 +481,3 @@ actor {
     };
   };
 };
-
