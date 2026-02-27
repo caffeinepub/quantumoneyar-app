@@ -1,3 +1,5 @@
+// AR math utilities for bearing calculation, angle normalization, and screen projection.
+
 export function calculateBearing(
   lat1: number,
   lon1: number,
@@ -15,6 +17,9 @@ export function calculateBearing(
   return ((θ * 180) / Math.PI + 360) % 360;
 }
 
+// Alias used by new code
+export const bearingTo = calculateBearing;
+
 export function normalizeAngleDifference(angle: number): number {
   let normalized = angle % 360;
   if (normalized > 180) {
@@ -25,20 +30,29 @@ export function normalizeAngleDifference(angle: number): number {
   return normalized;
 }
 
+// Alias used by new code
+export function angleDiff(a: number, b: number): number {
+  return Math.abs(normalizeAngleDifference(a - b));
+}
+
+/**
+ * Projects a world bearing to a screen X position (0–100 percent) and Y position (fixed center).
+ * Returns { x, y, visible } where x and y are percentages.
+ */
 export function projectToScreen(
   bearing: number,
   userHeading: number,
   fovDegrees: number = 60
-): { x: number; visible: boolean } {
-  const angleDiff = normalizeAngleDifference(bearing - userHeading);
+): { x: number; y: number; visible: boolean } {
+  const diff = normalizeAngleDifference(bearing - userHeading);
   const halfFov = fovDegrees / 2;
 
-  if (Math.abs(angleDiff) > halfFov) {
-    return { x: 0, visible: false };
+  if (Math.abs(diff) > halfFov) {
+    return { x: 0, y: 40, visible: false };
   }
 
-  const normalizedX = angleDiff / halfFov;
-  const screenX = 0.5 + normalizedX * 0.5;
+  const normalizedX = diff / halfFov;
+  const screenX = 50 + normalizedX * 50; // 0–100 percent
 
-  return { x: screenX, visible: true };
+  return { x: screenX, y: 40, visible: true };
 }

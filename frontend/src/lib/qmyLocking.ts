@@ -1,4 +1,8 @@
-import { updateMockedBalances, updateMockedXP } from './qmyApi';
+/**
+ * QMY locking system — local cache only.
+ * The canister is the source of truth for all lock/unlock operations.
+ * This module is kept for legacy compatibility but does not call the canister.
+ */
 
 interface LockedCoin {
   amount: number;
@@ -34,27 +38,13 @@ export function resolveMaturedLocks(principal: string): void {
 
   const locks: LockedCoin[] = JSON.parse(stored);
   const now = Date.now();
-  let totalReward = 0;
-  let totalXPPenalty = 0;
 
   const updatedLocks = locks.map(lock => {
     if (!lock.resolved && now >= lock.dueDate) {
-      // Lock matured: +2 QMY per coin, -30 XP
-      totalReward += lock.amount * 2;
-      totalXPPenalty += 30;
       return { ...lock, resolved: true };
     }
     return lock;
   });
-
-  if (totalReward > 0) {
-    // Update balances
-    const currentBalances = JSON.parse(localStorage.getItem(`quantumoney_balances_${principal}`) || '{"unlocked":0,"locked":0}');
-    const currentXP = JSON.parse(localStorage.getItem(`quantumoney_xp_${principal}`) || '0');
-    
-    updateMockedBalances(principal, currentBalances.unlocked + totalReward, currentBalances.locked);
-    updateMockedXP(principal, Math.max(0, currentXP - totalXPPenalty));
-  }
 
   localStorage.setItem(key, JSON.stringify(updatedLocks));
 }

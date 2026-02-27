@@ -24,6 +24,36 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const Timestamp = IDL.Int;
+export const CoinLock = IDL.Record({
+  'id' : IDL.Text,
+  'locked' : IDL.Bool,
+  'lockedBy' : IDL.Opt(IDL.Principal),
+  'timestamp' : IDL.Opt(Timestamp),
+});
+export const Monster = IDL.Record({
+  'id' : IDL.Text,
+  'name' : IDL.Text,
+  'captured' : IDL.Bool,
+  'captureTimestamp' : IDL.Opt(Timestamp),
+});
+export const PlayerState = IDL.Record({
+  'id' : IDL.Text,
+  'xp' : IDL.Nat,
+  'lockedQMY' : IDL.Float64,
+  'coinLocks' : IDL.Vec(CoinLock),
+  'lockedCoins' : IDL.Vec(CoinLock),
+  'unlockedQMY' : IDL.Float64,
+  'capturedMonsters' : IDL.Vec(Monster),
+  'monsters' : IDL.Vec(Monster),
+});
+export const ActionResponse = IDL.Record({
+  'globalStats' : IDL.Opt(IDL.Record({ 'natValue' : IDL.Nat })),
+  'playerState' : PlayerState,
+  'message' : IDL.Text,
+  'timestamp' : Timestamp,
+  'successful' : IDL.Bool,
+});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UserProfile = IDL.Record({
   'name' : IDL.Text,
@@ -46,31 +76,19 @@ export const Bonus = IDL.Record({
   'hasTokens' : IDL.Bool,
   'nextUnlockMessage' : IDL.Text,
 });
-export const Timestamp = IDL.Int;
-export const CoinLock = IDL.Record({
+export const SpawnItem = IDL.Record({
   'id' : IDL.Text,
-  'locked' : IDL.Bool,
-  'lockedBy' : IDL.Opt(IDL.Principal),
-  'timestamp' : IDL.Opt(Timestamp),
+  'latitude' : IDL.Float64,
+  'attributes' : IDL.Text,
+  'longitude' : IDL.Float64,
+  'itemType' : IDL.Text,
+  'spawnType' : IDL.Text,
 });
-export const Monster = IDL.Record({
-  'id' : IDL.Text,
-  'name' : IDL.Text,
-  'captured' : IDL.Bool,
-  'captureTimestamp' : IDL.Opt(Timestamp),
-});
-export const PlayerState = IDL.Record({
-  'id' : IDL.Text,
-  'xp' : IDL.Nat,
-  'coinLocks' : IDL.Vec(CoinLock),
-  'monsters' : IDL.Vec(Monster),
-});
-export const ActionResponse = IDL.Record({
-  'globalStats' : IDL.Opt(IDL.Record({ 'natValue' : IDL.Nat })),
-  'playerState' : PlayerState,
-  'message' : IDL.Text,
-  'timestamp' : Timestamp,
-  'successful' : IDL.Bool,
+export const VestingEntry = IDL.Record({
+  'unlockTimestamp' : Timestamp,
+  'installmentNumber' : IDL.Nat,
+  'unlocked' : IDL.Bool,
+  'amount' : IDL.Float64,
 });
 
 export const idlService = IDL.Service({
@@ -102,7 +120,9 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'captureMonster' : IDL.Func([IDL.Text], [ActionResponse], []),
   'claimBonus' : IDL.Func([], [], []),
+  'claimWelcomeBonus' : IDL.Func([], [], []),
   'getBonusStats' : IDL.Func(
       [],
       [
@@ -118,15 +138,19 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getClaimBonus' : IDL.Func([], [IDL.Opt(Bonus)], ['query']),
   'getPlayerState' : IDL.Func([], [PlayerState], ['query']),
+  'getSpawnList' : IDL.Func([], [IDL.Vec(SpawnItem)], ['query']),
   'getUserBonus' : IDL.Func([IDL.Principal], [IDL.Opt(Bonus)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'getVestingSchedule' : IDL.Func([], [IDL.Vec(VestingEntry)], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'lockCoin' : IDL.Func([IDL.Text], [ActionResponse], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'setDisplayName' : IDL.Func([IDL.Text], [], []),
+  'setProfilePhoto' : IDL.Func([ExternalBlob], [], []),
   'unlockCoin' : IDL.Func([IDL.Text], [ActionResponse], []),
 });
 
@@ -148,6 +172,36 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const Timestamp = IDL.Int;
+  const CoinLock = IDL.Record({
+    'id' : IDL.Text,
+    'locked' : IDL.Bool,
+    'lockedBy' : IDL.Opt(IDL.Principal),
+    'timestamp' : IDL.Opt(Timestamp),
+  });
+  const Monster = IDL.Record({
+    'id' : IDL.Text,
+    'name' : IDL.Text,
+    'captured' : IDL.Bool,
+    'captureTimestamp' : IDL.Opt(Timestamp),
+  });
+  const PlayerState = IDL.Record({
+    'id' : IDL.Text,
+    'xp' : IDL.Nat,
+    'lockedQMY' : IDL.Float64,
+    'coinLocks' : IDL.Vec(CoinLock),
+    'lockedCoins' : IDL.Vec(CoinLock),
+    'unlockedQMY' : IDL.Float64,
+    'capturedMonsters' : IDL.Vec(Monster),
+    'monsters' : IDL.Vec(Monster),
+  });
+  const ActionResponse = IDL.Record({
+    'globalStats' : IDL.Opt(IDL.Record({ 'natValue' : IDL.Nat })),
+    'playerState' : PlayerState,
+    'message' : IDL.Text,
+    'timestamp' : Timestamp,
+    'successful' : IDL.Bool,
   });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UserProfile = IDL.Record({
@@ -171,31 +225,19 @@ export const idlFactory = ({ IDL }) => {
     'hasTokens' : IDL.Bool,
     'nextUnlockMessage' : IDL.Text,
   });
-  const Timestamp = IDL.Int;
-  const CoinLock = IDL.Record({
+  const SpawnItem = IDL.Record({
     'id' : IDL.Text,
-    'locked' : IDL.Bool,
-    'lockedBy' : IDL.Opt(IDL.Principal),
-    'timestamp' : IDL.Opt(Timestamp),
+    'latitude' : IDL.Float64,
+    'attributes' : IDL.Text,
+    'longitude' : IDL.Float64,
+    'itemType' : IDL.Text,
+    'spawnType' : IDL.Text,
   });
-  const Monster = IDL.Record({
-    'id' : IDL.Text,
-    'name' : IDL.Text,
-    'captured' : IDL.Bool,
-    'captureTimestamp' : IDL.Opt(Timestamp),
-  });
-  const PlayerState = IDL.Record({
-    'id' : IDL.Text,
-    'xp' : IDL.Nat,
-    'coinLocks' : IDL.Vec(CoinLock),
-    'monsters' : IDL.Vec(Monster),
-  });
-  const ActionResponse = IDL.Record({
-    'globalStats' : IDL.Opt(IDL.Record({ 'natValue' : IDL.Nat })),
-    'playerState' : PlayerState,
-    'message' : IDL.Text,
-    'timestamp' : Timestamp,
-    'successful' : IDL.Bool,
+  const VestingEntry = IDL.Record({
+    'unlockTimestamp' : Timestamp,
+    'installmentNumber' : IDL.Nat,
+    'unlocked' : IDL.Bool,
+    'amount' : IDL.Float64,
   });
   
   return IDL.Service({
@@ -227,7 +269,9 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'captureMonster' : IDL.Func([IDL.Text], [ActionResponse], []),
     'claimBonus' : IDL.Func([], [], []),
+    'claimWelcomeBonus' : IDL.Func([], [], []),
     'getBonusStats' : IDL.Func(
         [],
         [
@@ -243,15 +287,19 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getClaimBonus' : IDL.Func([], [IDL.Opt(Bonus)], ['query']),
     'getPlayerState' : IDL.Func([], [PlayerState], ['query']),
+    'getSpawnList' : IDL.Func([], [IDL.Vec(SpawnItem)], ['query']),
     'getUserBonus' : IDL.Func([IDL.Principal], [IDL.Opt(Bonus)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'getVestingSchedule' : IDL.Func([], [IDL.Vec(VestingEntry)], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'lockCoin' : IDL.Func([IDL.Text], [ActionResponse], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'setDisplayName' : IDL.Func([IDL.Text], [], []),
+    'setProfilePhoto' : IDL.Func([ExternalBlob], [], []),
     'unlockCoin' : IDL.Func([IDL.Text], [ActionResponse], []),
   });
 };

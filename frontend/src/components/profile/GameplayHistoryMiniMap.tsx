@@ -10,8 +10,10 @@ interface GameplayHistoryMiniMapProps {
 export function GameplayHistoryMiniMap({ events }: GameplayHistoryMiniMapProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Filter events with location data
-  const eventsWithLocation = events.filter(e => e.location);
+  // Filter events with location data (latitude/longitude fields)
+  const eventsWithLocation = events.filter(
+    (e) => typeof e.latitude === 'number' && typeof e.longitude === 'number'
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -30,9 +32,9 @@ export function GameplayHistoryMiniMap({ events }: GameplayHistoryMiniMapProps) 
     ctx.fillStyle = '#0A0A0A';
     ctx.fillRect(0, 0, rect.width, rect.height);
 
-    // Calculate bounds
-    const lats = eventsWithLocation.map(e => e.location!.latitude);
-    const lngs = eventsWithLocation.map(e => e.location!.longitude);
+    // Calculate bounds using latitude/longitude directly on the event
+    const lats = eventsWithLocation.map((e) => e.latitude as number);
+    const lngs = eventsWithLocation.map((e) => e.longitude as number);
     const minLat = Math.min(...lats);
     const maxLat = Math.max(...lats);
     const minLng = Math.min(...lngs);
@@ -71,17 +73,21 @@ export function GameplayHistoryMiniMap({ events }: GameplayHistoryMiniMapProps) 
     ctx.globalAlpha = 1;
 
     // Draw markers
-    eventsWithLocation.forEach((event, index) => {
-      const { x, y } = project(event.location!.latitude, event.location!.longitude);
+    eventsWithLocation.forEach((event) => {
+      const lat = event.latitude as number;
+      const lng = event.longitude as number;
+      const { x, y } = project(lat, lng);
 
       // Marker color based on type
       let color = '#FFD700';
-      if (event.type === 'coin-collect' || event.type === 'coin-lock') {
+      if (event.type === 'coin-lock') {
         color = '#FFD700';
-      } else if (event.type === 'monster-encounter' || event.type === 'monster-capture') {
+      } else if (event.type === 'monster-capture') {
         color = '#9333EA';
       } else if (event.type === 'xp-gain') {
         color = '#10B981';
+      } else if (event.type === 'level-up') {
+        color = '#3B82F6';
       }
 
       // Draw marker
@@ -104,7 +110,6 @@ export function GameplayHistoryMiniMap({ events }: GameplayHistoryMiniMapProps) 
     ctx.font = '10px Inter';
     ctx.fillStyle = '#D4AF37';
     ctx.fillText(`${eventsWithLocation.length} locations`, padding, rect.height - 5);
-
   }, [eventsWithLocation]);
 
   if (eventsWithLocation.length === 0) {

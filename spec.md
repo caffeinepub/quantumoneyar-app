@@ -1,13 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Final sync pass for QuantumoneyAR covering profile photo uploads, monster capture XP reward, animated home background, footer ICP reference, and editable display name.
+**Goal:** Fully rebuild the QuantumoneyAR PWA so that all player data (XP, QMY balances, spawns, profile) is sourced from the real ICP backend canister, the AR game is fully playable with lock/unlock/capture actions, and the HUD displays static realistic QMY coin images instead of floating animations.
 
 **Planned changes:**
-- Add profile photo upload on the Profile page: an "Edit Photo" button opens a file picker, the selected image is stored as a blob in the backend per principal, and displayed in both the Profile page header and the Header auth dropdown (fallback to default avatar if none set).
-- Award +20 XP to the player when a monster is successfully rescued in the AR camera view; apply the XP mutation to the backend, update GameStateContext immediately, reflect in the Header balance display, Profile XP counter, and gameplay history.
-- Render the existing HomeSpaceBackground canvas as a full-screen animated backdrop on the Home/HUD page with twinkling stars, floating planets, comets, and drifting golden ICP and QMY coin images; background must not appear on other pages.
-- Add an ICP reference to the Footer component showing the ICP logo/icon and a "Powered by ICP" label linking to https://internetcomputer.org, displayed alongside the existing social share links (WhatsApp, X, Telegram, Instagram), with no Caffeine branding.
-- Display and allow inline editing of the authenticated user's display name on the Profile page, fetched from and persisted to the backend actor, reflected in the Header auth dropdown after saving.
+- Rebuild `backend/main.mo` to expose all required endpoints: `getPlayerState`, `claimWelcomeBonus` (idempotent, 100 XP + 100 unlocked QMY + 9×100 QMY monthly vesting), `lockCoin` (+10 XP), `unlockCoin` (-15 XP), `captureMonster` (+20 XP), `getSpawnList`, `getUserProfile`, `setDisplayName`, `setProfilePhoto`, and `getVestingSchedule`; all mutations authenticated via caller Principal
+- Rebuild `GameStateContext` to fetch all player data from the canister on mount and window focus; expose `xp`, `lockedQMY`, `unlockedQMY`, `capturedMonsters`, `lockedCoins`, `vestingSchedule`, `refetch`, and `triggerWelcomeBonus`; remove localStorage-only derivations
+- Rebuild `useArActions.ts` so `useLockCoin`, `useUnlockCoin`, and `useCaptureMonster` are React Query mutations calling the real canister endpoints; on success, invalidate the playerState query and update `arInteractionsStore`
+- Rebuild `CameraARActionBar` to show contextual buttons: "Lock QMY" for unlocked coin spawns, "Unlock QMY" for locked coin spawns, "Rescue Monster" for uncaptured monster spawns — each with a loading spinner and XP delta toast on success; `SpawnCollectFX` shown after monster capture; lock/unlock actions available only on the AR page
+- Add `useSpawnList` hook that fetches spawn data from the canister; `mockSpawns.ts` retained as fallback only (labeled with `// FALLBACK ONLY — used when canister is unreachable`)
+- Rebuild HUD page: remove all floating/drifting coin animations; add static realistic 3D QMY coin images as decorative elements; keep animated space background; display canister-backed XP, locked QMY, unlocked QMY; add "Go to Quantumoney.app" button; show `WelcomeBonusModal` on first login and auto-trigger `claimWelcomeBonus`
+- Rebuild Profile page to read all data from canister (displayName, XP, balances, captured monster count, vesting schedule); inline editable display name saved via `setDisplayName`; profile photo uploaded/loaded via `setProfilePhoto`; default avatar fallback
+- Rebuild Leaflet map integration so locked coin markers and captured monster markers reflect real-time canister state via `arInteractionsStore`; map state updated via `postMessage` on `arInteractionsStore` changes
 
-**User-visible outcome:** Users can upload a profile photo and edit their display name on the Profile page; capturing a monster awards +20 XP immediately; the Home page shows a lively animated space background; the footer shows a "Powered by ICP" badge alongside social share links.
+**User-visible outcome:** Players can log in, receive a one-time welcome bonus synced to the canister, see their real XP and QMY balances everywhere in the app, interact with AR spawns (lock coins, unlock coins, capture monsters) exclusively from the AR camera page with live canister updates, and view their profile and map with accurate real-time data matching Quantumoney.app.

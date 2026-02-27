@@ -1,56 +1,70 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
+import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { arInteractionsStore } from '../../lib/arInteractionsStore';
+import { useSpawnList } from '../../hooks/useSpawnList';
 
 export default function MapMundoLeaflet() {
+  const { identity } = useInternetIdentity();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const { data: spawnList = [] } = useSpawnList();
 
-  // Send state updates to the iframe map
-  const sendStateToMap = () => {
+  const sendStateToMap = useCallback(() => {
     if (!iframeRef.current?.contentWindow) return;
-    const state = arInteractionsStore.getState();
+    const state = arInteractionsStore.getAll();
     iframeRef.current.contentWindow.postMessage(
-      { type: 'AR_STATE_UPDATE', payload: state },
+      {
+        type: 'AR_STATE_UPDATE',
+        lockedCoins: Array.from(state.lockedCoins),
+        capturedMonsters: Array.from(state.capturedMonsters),
+        spawns: spawnList,
+      },
       '*'
     );
-  };
+  }, [spawnList]);
 
+  // Send state when iframe loads
+  const handleIframeLoad = useCallback(() => {
+    setTimeout(sendStateToMap, 300);
+  }, [sendStateToMap]);
+
+  // Listen for localStorage changes (from AR actions)
   useEffect(() => {
-    // Send initial state after iframe loads
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-
-    const handleLoad = () => {
-      setTimeout(sendStateToMap, 500);
-    };
-
-    iframe.addEventListener('load', handleLoad);
-
-    // Listen for storage changes and forward to map
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'qmy_ar_interactions_v2') {
+      if (e.key === 'arInteractionsStore') {
         sendStateToMap();
       }
     };
     window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [sendStateToMap]);
 
-    return () => {
-      iframe.removeEventListener('load', handleLoad);
-      window.removeEventListener('storage', handleStorage);
-    };
-  }, []);
+  // Send updated spawn list when it changes
+  useEffect(() => {
+    if (spawnList.length > 0) {
+      sendStateToMap();
+    }
+  }, [spawnList, sendStateToMap]);
+
+  if (!identity) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full bg-black text-white p-8 text-center">
+        <div className="text-4xl mb-4">🗺️</div>
+        <h2 className="text-xl font-bold text-gold mb-2">Login Required</h2>
+        <p className="text-white/60 text-sm">Please login to view the world map.</p>
+      </div>
+    );
+  }
 
   return (
-    <div
-      className="flex flex-col"
-      style={{ minHeight: '75vh', height: 'calc(100vh - 120px)', paddingBottom: '80px' }}
-    >
+    <div className="relative w-full h-full" style={{ minHeight: '100dvh' }}>
       <iframe
         ref={iframeRef}
         src="/map/index.html"
+        className="w-full h-full border-0"
         title="Quantumoney World Map"
-        className="w-full flex-1 border-0"
-        style={{ minHeight: '400px' }}
+        onLoad={handleIframeLoad}
         allow="geolocation"
+        style={{ minHeight: '100dvh' }}
       />
     </div>
   );

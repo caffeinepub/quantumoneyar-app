@@ -1,38 +1,110 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T23:38:08.251Z",
-  "summary": "The diff implements most of the four main requirements (REQ-14, REQ-15, REQ-16, REQ-17, REQ-18). REQ-16 and REQ-17 appear fully implemented. REQ-14 and REQ-18 are largely implemented in Profile.tsx and Header.tsx. REQ-15 is partially implemented but the backend XP mutation for monster rescue is not clearly wired up — the handleRescue in CameraARActionBar records the event and refreshes state but does not call a backend captureMonster mutation.",
+  "generatedAt": "2026-02-27T00:55:26.627Z",
+  "summary": "The diff implements most of the requested requirements across backend and frontend. Key areas like GameStateContext, useArActions, CameraARActionBar, useSpawnList, HUD, Profile, MapMundoLeaflet, and the backend are all present. However, several specific acceptance criteria have partial or unclear implementations, and a few requirements show gaps.",
   "missing_requirements": [
     {
-      "id": "REQ-15",
-      "requirement": "Rescuing a monster triggers a +20 XP backend mutation via the same backend XP mutation used for lock/unlock actions.",
-      "reason": "In CameraARActionBar.tsx, handleRescue only adds a gameplay history event and calls queryClient.invalidateQueries + refresh(). There is no call to a backend mutation (e.g., captureMonster or equivalent) that persists the +20 XP to the backend actor. The AC states the XP delta must be applied via the same backend XP mutation used for lock/unlock actions, but no such mutation call is present in the diff.",
+      "id": "REQ-32",
+      "requirement": "mockSpawns.ts must contain a visible comment marking it as fallback-only ('// FALLBACK ONLY — used when canister is unreachable')",
+      "reason": "The diff shows useSpawnList.ts imports MOCK_SPAWNS from mockSpawns.ts and uses it as a fallback, but the mockSpawns.ts file itself is not shown in the diff. There is no evidence that the required comment was added to mockSpawns.ts.",
+      "evidence": [
+        "frontend/src/hooks/useSpawnList.ts"
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "requirement": "On success, each mutation must update mockGameplayState (as fallback cache) in addition to arInteractionsStore",
+      "reason": "useArActions.ts updates arInteractionsStore on success for all three mutations, but there is no evidence of mockGameplayState being updated anywhere in the diff.",
+      "evidence": [
+        "frontend/src/hooks/useArActions.ts"
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "requirement": "Show an XP change toast or FX for unlock action (-15 XP) via SpawnCollectFX or equivalent in the action bar",
+      "reason": "CameraARActionBar.tsx does not call setShowFX for the unlock action. The -15 XP feedback comes only from the sonner toast in useArActions, not from a SpawnCollectFX overlay in the action bar as implied by the requirement.",
       "evidence": [
         "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx"
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "requirement": "The authenticated HUD page must display at least one static realistic QMY coin image as a decorative element",
+      "reason": "In HUD.tsx, the qmy-coin-3d.dim_256x256.png image is only shown in the unauthenticated login screen block. The authenticated section of HUD.tsx is truncated, so it cannot be confirmed that a static QMY coin image is also present in the authenticated HUD view.",
+      "evidence": [
+        "frontend/src/components/sections/HUD.tsx"
+      ]
+    },
+    {
+      "id": "REQ-35",
+      "requirement": "map.js reads arInteractionsStore from localStorage to render correct locked and captured marker states",
+      "reason": "MapMundoLeaflet.tsx sends postMessage with state updates, but the /public/map/map.js file is not included in the diff. There is no evidence that map.js was updated to read arInteractionsStore and render locked/captured marker visuals.",
+      "evidence": [
+        "frontend/src/components/sections/MapMundoLeaflet.tsx"
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "requirement": "A QMY coin image asset (qmy-coin-3d.dim_256x256.png) must be present in frontend/public/assets/generated/",
+      "reason": "HUD.tsx references /assets/generated/qmy-coin-3d.dim_256x256.png but no image file addition is shown in the diff. The single added file is useSpawnList.ts. There is no evidence the image was generated and added.",
+      "evidence": [
+        "frontend/src/components/sections/HUD.tsx"
+      ]
+    },
+    {
+      "id": "REQ-29",
+      "requirement": "GameStateContext must refetch vestingSchedule on window focus",
+      "reason": "usePlayerState has refetchOnWindowFocus: true, but the vestingSchedule query in GameStateContext.tsx does not include refetchOnWindowFocus: true, meaning vesting data will not refresh on window focus as required.",
+      "evidence": [
+        "frontend/src/contexts/GameStateContext.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Upload progress tracking for profile photo with uploadProgress state and withUploadProgress callback on ExternalBlob",
-      "reason": "The build request (REQ-14) only requires uploading a photo blob to the backend and displaying it. It does not request a progress indicator or progress percentage UI. The diff adds setUploadProgress state and a withUploadProgress callback on the ExternalBlob, which was not requested.",
+      "description": "GameplayHistoryMiniMap component displaying a canvas-based mini-map of gameplay events with color-coded markers",
+      "reason": "The spec does not mention a GameplayHistoryMiniMap component anywhere. This appears to be an added feature not requested in any requirement.",
       "evidence": [
-        "frontend/src/components/sections/Profile.tsx"
+        "frontend/src/components/profile/GameplayHistoryMiniMap.tsx"
+      ]
+    },
+    {
+      "description": "arInteractionsStore.syncFromIds() called in usePlayerState to sync canister data into the local store on every playerState fetch",
+      "reason": "The spec only requests arInteractionsStore be updated on mutation success. Syncing it from canister data on every playerState query fetch was not explicitly requested.",
+      "evidence": [
+        "frontend/src/hooks/usePlayerState.ts"
       ]
     }
   ],
-  "confidence": 0.82,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/Footer.tsx",
-    "frontend/src/components/Header.tsx",
+    "frontend/public/map/map.js",
+    "frontend/src/App.tsx",
+    "frontend/src/components/WelcomeBonusModal.tsx",
+    "frontend/src/components/profile/GameplayHistoryMiniMap.tsx",
     "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx",
+    "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+    "frontend/src/components/sections/CameraAR/OverlayLayer.tsx",
+    "frontend/src/components/sections/CameraAR/arMath.ts",
+    "frontend/src/components/sections/CameraAR/sprites.ts",
+    "frontend/src/components/sections/CameraAR/useArVisibility.ts",
     "frontend/src/components/sections/HUD.tsx",
     "frontend/src/components/sections/HomeSpaceBackground.tsx",
+    "frontend/src/components/sections/MapMundoLeaflet.tsx",
     "frontend/src/components/sections/Profile.tsx",
+    "frontend/src/components/sections/StaticWorldMap.tsx",
+    "frontend/src/contexts/GameStateContext.tsx",
+    "frontend/src/gameplay/fx/SpawnCollectFX.tsx",
+    "frontend/src/gameplay/history/useGameplayHistory.ts",
+    "frontend/src/hooks/useArActions.ts",
+    "frontend/src/hooks/usePlayerState.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useSpawnList.ts",
+    "frontend/src/lib/arInteractionsStore.ts",
+    "frontend/src/lib/mockSpawns.ts",
     "project_state.json"
   ]
 }

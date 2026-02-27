@@ -6,14 +6,13 @@ import Time "mo:core/Time";
 import Text "mo:core/Text";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
+
 import Runtime "mo:core/Runtime";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -85,6 +84,48 @@ actor {
     userProfiles.add(userId, profile);
   };
 
+  public shared ({ caller }) func setDisplayName(displayName : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can set display name");
+    };
+    let userId = getOrCreateUserId(caller);
+    let existing = switch (userProfiles.get(userId)) {
+      case (null) {
+        {
+          name = displayName;
+          gender = null;
+          photoUrl = null;
+          locale = "en";
+        };
+      };
+      case (?profile) {
+        { profile with name = displayName };
+      };
+    };
+    userProfiles.add(userId, existing);
+  };
+
+  public shared ({ caller }) func setProfilePhoto(photo : Storage.ExternalBlob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can set profile photo");
+    };
+    let userId = getOrCreateUserId(caller);
+    let existing = switch (userProfiles.get(userId)) {
+      case (null) {
+        {
+          name = "";
+          gender = null;
+          photoUrl = ?photo;
+          locale = "en";
+        };
+      };
+      case (?profile) {
+        { profile with photoUrl = ?photo };
+      };
+    };
+    userProfiles.add(userId, existing);
+  };
+
   public type Bonus = {
     unlocked : Float;
     locked : Float;
@@ -101,9 +142,21 @@ actor {
     totqmy : Int;
   };
 
+  public type VestingEntry = {
+    installmentNumber : Nat;
+    amount : Float;
+    unlockTimestamp : Timestamp;
+    unlocked : Bool;
+  };
+
   let bonuses = Map.empty<UserID, Bonus>();
+  let vestingSchedules = Map.empty<UserID, List.List<VestingEntry>>();
   var registrationCount = 0 : Nat;
   let MAX_BONUS_USERS = 100_000;
+
+  let VESTING_INSTALLMENTS = 9 : Nat;
+  let VESTING_AMOUNT_PER_INSTALLMENT : Float = 100.0;
+  let NANOSECONDS_PER_MONTH = 2_592_000_000_000_000 : Int;
 
   public query ({ caller }) func getClaimBonus() : async ?Bonus {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -116,6 +169,67 @@ actor {
     };
   };
 
+  public shared ({ caller }) func claimWelcomeBonus() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can claim bonuses");
+    };
+
+    let userId = getOrCreateUserId(caller);
+
+    switch (bonuses.get(userId)) {
+      case (?_existing) {
+        // Idempotent: already claimed, silently return
+        return;
+      };
+      case (null) {};
+    };
+
+    if (registrationCount >= MAX_BONUS_USERS) {
+      Runtime.trap("This bonus promotion has a limit of 100,000 users");
+    };
+
+    let now = Time.now();
+
+    let newBonus : Bonus = {
+      unlocked = 100.0;
+      locked = 900.0;
+      lastUnlockTimestamp = 0;
+      nextUnlockBalance = 100.0;
+      remainingLocked = 900.0;
+      percentageUnlocked = 0.1;
+      unlocksRemaining = 9;
+      fullyUnlocked = false;
+      nextUnlockMessage = "Next unlock in 1 month";
+      cntRemaining = 8;
+      hasNextUnlock = true;
+      hasTokens = true;
+      totqmy = 1000;
+    };
+
+    bonuses.add(userId, newBonus);
+
+    // Build vesting schedule: 9 monthly installments of 100 QMY each
+    var vestingList = List.empty<VestingEntry>();
+    var i = 0 : Nat;
+    while (i < VESTING_INSTALLMENTS) {
+      let entry : VestingEntry = {
+        installmentNumber = i + 1;
+        amount = VESTING_AMOUNT_PER_INSTALLMENT;
+        unlockTimestamp = now + (NANOSECONDS_PER_MONTH * (i + 1));
+        unlocked = false;
+      };
+      vestingList.add(entry);
+      i += 1;
+    };
+    vestingSchedules.add(userId, vestingList);
+
+    // Award 100 XP for claiming welcome bonus
+    addPlayerXP(userId, 100);
+
+    registrationCount += 1;
+  };
+
+  // Keep claimBonus as alias for backward compatibility
   public shared ({ caller }) func claimBonus() : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can claim bonuses");
@@ -134,6 +248,8 @@ actor {
       Runtime.trap("This bonus promotion has a limit of 100,000 users");
     };
 
+    let now = Time.now();
+
     let newBonus : Bonus = {
       unlocked = 100.0;
       locked = 900.0;
@@ -143,15 +259,48 @@ actor {
       percentageUnlocked = 0.1;
       unlocksRemaining = 9;
       fullyUnlocked = false;
-      nextUnlockMessage = "Next unlock in 6 months";
+      nextUnlockMessage = "Next unlock in 1 month";
       cntRemaining = 8;
-      hasNextUnlock = false;
+      hasNextUnlock = true;
       hasTokens = true;
       totqmy = 1000;
     };
 
     bonuses.add(userId, newBonus);
+
+    var vestingList = List.empty<VestingEntry>();
+    var i = 0 : Nat;
+    while (i < VESTING_INSTALLMENTS) {
+      let entry : VestingEntry = {
+        installmentNumber = i + 1;
+        amount = VESTING_AMOUNT_PER_INSTALLMENT;
+        unlockTimestamp = now + (NANOSECONDS_PER_MONTH * (i + 1));
+        unlocked = false;
+      };
+      vestingList.add(entry);
+      i += 1;
+    };
+    vestingSchedules.add(userId, vestingList);
+
+    addPlayerXP(userId, 100);
+
     registrationCount += 1;
+  };
+
+  public query ({ caller }) func getVestingSchedule() : async [VestingEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access vesting schedule");
+    };
+
+    switch (getUserIdReadOnly(caller)) {
+      case (null) { [] };
+      case (?userId) {
+        switch (vestingSchedules.get(userId)) {
+          case (null) { [] };
+          case (?list) { list.toArray() };
+        };
+      };
+    };
   };
 
   public query ({ caller }) func getBonusStats() : async { registrationCount : Nat; maxUsers : Nat; remaining : Nat } {
@@ -207,6 +356,10 @@ actor {
   public type PlayerState = {
     id : Text;
     xp : Nat;
+    lockedQMY : Float;
+    unlockedQMY : Float;
+    capturedMonsters : [Monster];
+    lockedCoins : [CoinLock];
     monsters : [Monster];
     coinLocks : [CoinLock];
   };
@@ -232,6 +385,15 @@ actor {
   public type UnlockRecord = {
     timestamp : Timestamp;
     coinId : Text;
+  };
+
+  public type SpawnItem = {
+    id : Text;
+    spawnType : Text;
+    latitude : Float;
+    longitude : Float;
+    itemType : Text;
+    attributes : Text;
   };
 
   let monsters = Map.empty<UserID, List.List<Monster>>();
@@ -301,6 +463,60 @@ actor {
     };
   };
 
+  func isMonsterCapturedByUser(userId : UserID, monsterId : Text) : Bool {
+    switch (monsters.get(userId)) {
+      case (null) { false };
+      case (?list) {
+        for (m in list.toArray().vals()) {
+          if (m.id == monsterId and m.captured) {
+            return true;
+          };
+        };
+        false;
+      };
+    };
+  };
+
+  func getUserLockedQMY(userId : UserID) : Float {
+    switch (bonuses.get(userId)) {
+      case (null) { 0.0 };
+      case (?b) { b.locked };
+    };
+  };
+
+  func getUserUnlockedQMY(userId : UserID) : Float {
+    switch (bonuses.get(userId)) {
+      case (null) { 0.0 };
+      case (?b) { b.unlocked };
+    };
+  };
+
+  func buildPlayerState(userId : UserID) : PlayerState {
+    let monsterList = switch (monsters.get(userId)) {
+      case (null) { List.empty<Monster>() };
+      case (?list) { list };
+    };
+
+    let coinLockList = switch (coinLocks.get(userId)) {
+      case (null) { List.empty<CoinLock>() };
+      case (?list) { list };
+    };
+
+    let capturedArr = monsterList.toArray();
+    let lockedCoinsArr = coinLockList.toArray();
+
+    {
+      id = userId.toText();
+      xp = getPlayerXP(userId);
+      lockedQMY = getUserLockedQMY(userId);
+      unlockedQMY = getUserUnlockedQMY(userId);
+      capturedMonsters = capturedArr;
+      lockedCoins = lockedCoinsArr;
+      monsters = capturedArr;
+      coinLocks = lockedCoinsArr;
+    };
+  };
+
   public query ({ caller }) func getPlayerState() : async PlayerState {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access player state");
@@ -311,28 +527,138 @@ actor {
         {
           id = "0";
           xp = 0;
+          lockedQMY = 0.0;
+          unlockedQMY = 0.0;
+          capturedMonsters = [];
+          lockedCoins = [];
           monsters = [];
           coinLocks = [];
         };
       };
       case (?userId) {
-        let monsterList = switch (monsters.get(userId)) {
-          case (null) { List.empty<Monster>() };
-          case (?list) { list };
-        };
-
-        let coinLockList = switch (coinLocks.get(userId)) {
-          case (null) { List.empty<CoinLock>() };
-          case (?list) { list };
-        };
-
-        {
-          id = userId.toText();
-          xp = getPlayerXP(userId);
-          monsters = monsterList.toArray();
-          coinLocks = coinLockList.toArray();
-        };
+        buildPlayerState(userId);
       };
+    };
+  };
+
+  public query func getSpawnList() : async [SpawnItem] {
+    [
+      {
+        id = "coin_spawn_001";
+        spawnType = "coin";
+        latitude = 37.7749;
+        longitude = -122.4194;
+        itemType = "QMY_coin";
+        attributes = "value:10,rarity:common";
+      },
+      {
+        id = "coin_spawn_002";
+        spawnType = "coin";
+        latitude = 37.7751;
+        longitude = -122.4180;
+        itemType = "QMY_coin";
+        attributes = "value:50,rarity:uncommon";
+      },
+      {
+        id = "coin_spawn_003";
+        spawnType = "coin";
+        latitude = 37.7760;
+        longitude = -122.4200;
+        itemType = "QMY_coin";
+        attributes = "value:100,rarity:rare";
+      },
+      {
+        id = "monster_spawn_001";
+        spawnType = "monster";
+        latitude = 37.7755;
+        longitude = -122.4190;
+        itemType = "Quantumon_Alpha";
+        attributes = "level:1,hp:100,xp_reward:20";
+      },
+      {
+        id = "monster_spawn_002";
+        spawnType = "monster";
+        latitude = 37.7740;
+        longitude = -122.4210;
+        itemType = "Quantumon_Beta";
+        attributes = "level:3,hp:250,xp_reward:20";
+      },
+      {
+        id = "monster_spawn_003";
+        spawnType = "monster";
+        latitude = 37.7770;
+        longitude = -122.4170;
+        itemType = "Quantumon_Gamma";
+        attributes = "level:5,hp:500,xp_reward:20";
+      },
+      {
+        id = "coin_spawn_004";
+        spawnType = "coin";
+        latitude = 40.7128;
+        longitude = -74.0060;
+        itemType = "QMY_coin";
+        attributes = "value:25,rarity:common";
+      },
+      {
+        id = "monster_spawn_004";
+        spawnType = "monster";
+        latitude = 40.7130;
+        longitude = -74.0050;
+        itemType = "Quantumon_Delta";
+        attributes = "level:2,hp:150,xp_reward:20";
+      },
+    ];
+  };
+
+  public shared ({ caller }) func captureMonster(spawnId : Text) : async ActionResponse {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can capture monsters");
+    };
+
+    let userId = getOrCreateUserId(caller);
+
+    if (isMonsterCapturedByUser(userId, spawnId)) {
+      Runtime.trap("Monster has already been captured by you");
+    };
+
+    let monster : Monster = {
+      id = spawnId;
+      name = "Quantumon_" # spawnId;
+      captured = true;
+      captureTimestamp = ?Time.now();
+    };
+
+    let monsterList = switch (monsters.get(userId)) {
+      case (null) { List.fromArray<Monster>([monster]) };
+      case (?list) {
+        list.add(monster);
+        list;
+      };
+    };
+    monsters.add(userId, monsterList);
+
+    addPlayerXP(userId, CAPTURE_XP_REWARD);
+
+    let entry = {
+      actionType = "capture_monster";
+      timestamp = Time.now();
+      metadata = "Monster " # spawnId # " captured, +" # CAPTURE_XP_REWARD.toText() # " XP";
+    };
+    let historyList = switch (actionHistory.get(userId)) {
+      case (null) { List.fromArray<HistoryEntry>([entry]) };
+      case (?list) {
+        list.add(entry);
+        list;
+      };
+    };
+    actionHistory.add(userId, historyList);
+
+    {
+      timestamp = Time.now();
+      successful = true;
+      message = "Monster captured successfully, +" # CAPTURE_XP_REWARD.toText() # " XP";
+      playerState = buildPlayerState(userId);
+      globalStats = null;
     };
   };
 
@@ -383,15 +709,7 @@ actor {
       timestamp = Time.now();
       successful = true;
       message = "Coin locked successfully, +" # LOCK_XP_REWARD.toText() # " XP";
-      playerState = {
-        id = userId.toText();
-        xp = getPlayerXP(userId);
-        monsters = switch (monsters.get(userId)) {
-          case (null) { [] };
-          case (?list) { list.toArray() };
-        };
-        coinLocks = coinList.toArray();
-      };
+      playerState = buildPlayerState(userId);
       globalStats = null;
     };
   };
@@ -468,15 +786,7 @@ actor {
       timestamp = Time.now();
       successful = true;
       message = "Coin unlocked, -" # UNLOCK_XP_COST.toText() # " XP";
-      playerState = {
-        id = userId.toText();
-        xp = getPlayerXP(userId);
-        monsters = switch (monsters.get(userId)) {
-          case (null) { [] };
-          case (?list) { list.toArray() };
-        };
-        coinLocks = updatedCoinList.toArray();
-      };
+      playerState = buildPlayerState(userId);
       globalStats = null;
     };
   };

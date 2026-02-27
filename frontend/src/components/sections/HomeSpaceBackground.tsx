@@ -1,323 +1,198 @@
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface Star {
   x: number;
   y: number;
   size: number;
-  speed: number;
   opacity: number;
+  twinkleSpeed: number;
+  twinkleOffset: number;
 }
 
 interface Planet {
   x: number;
   y: number;
-  size: number;
-  speed: number;
+  radius: number;
   color: string;
-  offsetY: number;
+  speed: number;
+  offset: number;
 }
 
 interface Comet {
   x: number;
   y: number;
-  speed: number;
   length: number;
-  active: boolean;
-}
-
-interface Coin {
-  x: number;
-  y: number;
-  size: number;
   speed: number;
+  angle: number;
   opacity: number;
-  type: 'qmy' | 'icp';
-  scale: number;
-  rotation: number;
-  driftX: number;
+  active: boolean;
+  timer: number;
 }
 
 export default function HomeSpaceBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const starsRef = useRef<Star[]>([]);
-  const planetsRef = useRef<Planet[]>([]);
-  const cometsRef = useRef<Comet[]>([]);
-  const coinsRef = useRef<Coin[]>([]);
-  const lastCometTimeRef = useRef<number>(0);
-  const lastCoinTimeRef = useRef<number>(0);
-  const qmyImageRef = useRef<HTMLImageElement | null>(null);
-  const icpImageRef = useRef<HTMLImageElement | null>(null);
+  const animRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Preload golden coin images
-    const qmyImg = new Image();
-    qmyImg.src = '/assets/generated/qmy-coin-gold.dim_128x128.png';
-    qmyImageRef.current = qmyImg;
-
-    const icpImg = new Image();
-    icpImg.src = '/assets/generated/icp-coin-gold.dim_128x128.png';
-    icpImageRef.current = icpImg;
-
-    // Set canvas size
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
     };
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    resize();
+    window.addEventListener('resize', resize);
 
-    // Initialize stars (120 stars for richer background)
-    const initStars = () => {
-      starsRef.current = [];
-      for (let i = 0; i < 120; i++) {
-        starsRef.current.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 2 + 0.5,
-          speed: Math.random() * 0.15 + 0.05,
-          opacity: Math.random() * 0.5 + 0.5,
-        });
-      }
-    };
+    // Stars
+    const stars: Star[] = Array.from({ length: 120 }, () => ({
+      x: Math.random(),
+      y: Math.random(),
+      size: Math.random() * 2 + 0.5,
+      opacity: Math.random() * 0.6 + 0.2,
+      twinkleSpeed: Math.random() * 0.02 + 0.005,
+      twinkleOffset: Math.random() * Math.PI * 2,
+    }));
 
-    // Initialize planets (6 planets with gold/dark tones)
-    const initPlanets = () => {
-      planetsRef.current = [];
-      const colors = ['#2D2000', '#1A1500', '#3D3000', '#4A3800', '#1E1800', '#2A2000'];
-      for (let i = 0; i < 6; i++) {
-        planetsRef.current.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 55 + 25,
-          speed: Math.random() * 0.06 + 0.02,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          offsetY: 0,
-        });
-      }
-    };
+    // Planets
+    const planets: Planet[] = [
+      { x: 0.15, y: 0.2, radius: 18, color: '#b8860b', speed: 0.0003, offset: 0 },
+      { x: 0.8, y: 0.15, radius: 12, color: '#8b6914', speed: 0.0005, offset: 1 },
+      { x: 0.7, y: 0.75, radius: 22, color: '#d4af37', speed: 0.0002, offset: 2 },
+    ];
 
-    // Initialize comets (3 comets)
-    const initComets = () => {
-      cometsRef.current = [];
-      for (let i = 0; i < 3; i++) {
-        cometsRef.current.push({
-          x: -100,
-          y: -100,
-          speed: 0,
-          length: 0,
-          active: false,
-        });
-      }
-    };
+    // Comets
+    const comets: Comet[] = Array.from({ length: 3 }, () => ({
+      x: Math.random(),
+      y: Math.random() * 0.5,
+      length: Math.random() * 80 + 40,
+      speed: Math.random() * 0.003 + 0.002,
+      angle: Math.PI / 6,
+      opacity: 0,
+      active: false,
+      timer: Math.random() * 300,
+    }));
 
-    initStars();
-    initPlanets();
-    initComets();
+    let frame = 0;
 
-    // Animation loop
-    const animate = (timestamp: number) => {
-      if (!ctx || !canvas) return;
+    const draw = () => {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
 
-      // Clear canvas with deep space background
-      ctx.fillStyle = 'rgba(0, 0, 5, 0.25)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Background
+      const bg = ctx.createLinearGradient(0, 0, 0, h);
+      bg.addColorStop(0, '#000000');
+      bg.addColorStop(1, '#0a0500');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
 
-      // Draw stars with gentle twinkling
-      starsRef.current.forEach((star) => {
-        star.opacity += star.speed * (Math.random() > 0.5 ? 1 : -1);
-        if (star.opacity > 1) star.opacity = 1;
-        if (star.opacity < 0.2) star.opacity = 0.2;
-
-        ctx.fillStyle = `rgba(255, 255, 220, ${star.opacity})`;
+      // Stars
+      stars.forEach((star) => {
+        const twinkle = Math.sin(frame * star.twinkleSpeed + star.twinkleOffset);
+        const alpha = star.opacity + twinkle * 0.2;
         ctx.beginPath();
-        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+        ctx.arc(star.x * w, star.y * h, star.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 240, 180, ${Math.max(0, alpha)})`;
         ctx.fill();
       });
 
-      // Draw planets with gentle floating motion
-      planetsRef.current.forEach((planet) => {
-        planet.offsetY += planet.speed;
-        if (planet.offsetY > 10) planet.offsetY = -10;
+      // Planets
+      planets.forEach((planet) => {
+        const wobble = Math.sin(frame * planet.speed + planet.offset) * 3;
+        const px = planet.x * w + wobble;
+        const py = planet.y * h + wobble * 0.5;
+
+        // Glow
+        const glow = ctx.createRadialGradient(px, py, 0, px, py, planet.radius * 2.5);
+        glow.addColorStop(0, planet.color + '40');
+        glow.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(px, py, planet.radius * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = glow;
+        ctx.fill();
 
         // Planet body
-        ctx.globalAlpha = 0.45;
-        ctx.fillStyle = planet.color;
+        const grad = ctx.createRadialGradient(px - planet.radius * 0.3, py - planet.radius * 0.3, 0, px, py, planet.radius);
+        grad.addColorStop(0, planet.color + 'ff');
+        grad.addColorStop(0.7, planet.color + 'cc');
+        grad.addColorStop(1, '#00000088');
         ctx.beginPath();
-        ctx.arc(planet.x, planet.y + planet.offsetY, planet.size, 0, Math.PI * 2);
+        ctx.arc(px, py, planet.radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
         ctx.fill();
 
-        // Planet ring glow (gold tint)
-        const ringGrad = ctx.createRadialGradient(
-          planet.x, planet.y + planet.offsetY, planet.size * 0.7,
-          planet.x, planet.y + planet.offsetY, planet.size * 1.3
-        );
-        ringGrad.addColorStop(0, 'rgba(255,215,0,0.08)');
-        ringGrad.addColorStop(1, 'rgba(255,215,0,0)');
-        ctx.fillStyle = ringGrad;
+        // Ring
         ctx.beginPath();
-        ctx.arc(planet.x, planet.y + planet.offsetY, planet.size * 1.3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.globalAlpha = 1;
+        ctx.ellipse(px, py, planet.radius * 1.8, planet.radius * 0.4, 0.3, 0, Math.PI * 2);
+        ctx.strokeStyle = planet.color + '60';
+        ctx.lineWidth = 2;
+        ctx.stroke();
       });
 
-      // Spawn occasional comets (every 8-14 seconds)
-      if (timestamp - lastCometTimeRef.current > 8000 + Math.random() * 6000) {
-        const inactiveComet = cometsRef.current.find((c) => !c.active);
-        if (inactiveComet) {
-          inactiveComet.x = Math.random() * canvas.width;
-          inactiveComet.y = -50;
-          inactiveComet.speed = Math.random() * 2.5 + 1.5;
-          inactiveComet.length = Math.random() * 80 + 50;
-          inactiveComet.active = true;
-          lastCometTimeRef.current = timestamp;
+      // Comets
+      comets.forEach((comet) => {
+        if (!comet.active) {
+          comet.timer--;
+          if (comet.timer <= 0) {
+            comet.active = true;
+            comet.x = -0.1;
+            comet.y = Math.random() * 0.6;
+            comet.opacity = 0;
+            comet.timer = 200 + Math.random() * 400;
+          }
+          return;
         }
-      }
 
-      // Draw comets
-      cometsRef.current.forEach((comet) => {
-        if (!comet.active) return;
+        comet.x += comet.speed;
+        comet.y += comet.speed * 0.3;
+        comet.opacity = Math.min(1, comet.opacity + 0.05);
 
-        comet.x += comet.speed * 0.6;
-        comet.y += comet.speed;
-
-        if (comet.y > canvas.height + 100) {
+        if (comet.x > 1.2) {
           comet.active = false;
+          comet.opacity = 0;
         }
 
-        const gradient = ctx.createLinearGradient(
-          comet.x - comet.length * 0.3,
-          comet.y - comet.length,
-          comet.x,
-          comet.y
-        );
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        gradient.addColorStop(0.5, 'rgba(255, 240, 180, 0.5)');
-        gradient.addColorStop(1, 'rgba(255, 255, 255, 0.95)');
+        const cx = comet.x * w;
+        const cy = comet.y * h;
+        const tailX = cx - Math.cos(comet.angle) * comet.length;
+        const tailY = cy - Math.sin(comet.angle) * comet.length;
 
-        ctx.strokeStyle = gradient;
-        ctx.lineWidth = 2.5;
+        const cometGrad = ctx.createLinearGradient(tailX, tailY, cx, cy);
+        cometGrad.addColorStop(0, `rgba(212, 175, 55, 0)`);
+        cometGrad.addColorStop(1, `rgba(255, 240, 180, ${comet.opacity * 0.8})`);
+
         ctx.beginPath();
-        ctx.moveTo(comet.x - comet.length * 0.3, comet.y - comet.length);
-        ctx.lineTo(comet.x, comet.y);
+        ctx.moveTo(tailX, tailY);
+        ctx.lineTo(cx, cy);
+        ctx.strokeStyle = cometGrad;
+        ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Comet head glow
-        const headGlow = ctx.createRadialGradient(comet.x, comet.y, 0, comet.x, comet.y, 6);
-        headGlow.addColorStop(0, 'rgba(255, 255, 200, 1)');
-        headGlow.addColorStop(1, 'rgba(255, 215, 0, 0)');
-        ctx.fillStyle = headGlow;
         ctx.beginPath();
-        ctx.arc(comet.x, comet.y, 6, 0, Math.PI * 2);
+        ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 200, ${comet.opacity})`;
         ctx.fill();
       });
 
-      // Spawn floating golden coins (every 2-4 seconds, max 10 coins)
-      if (
-        timestamp - lastCoinTimeRef.current > 2000 + Math.random() * 2000 &&
-        coinsRef.current.length < 10
-      ) {
-        coinsRef.current.push({
-          x: Math.random() * canvas.width,
-          y: canvas.height + 60,
-          size: 28,
-          speed: Math.random() * 0.6 + 0.3,
-          opacity: 0,
-          type: Math.random() > 0.5 ? 'qmy' : 'icp',
-          scale: 0.4,
-          rotation: Math.random() * Math.PI * 2,
-          driftX: (Math.random() - 0.5) * 0.4,
-        });
-        lastCoinTimeRef.current = timestamp;
-      }
-
-      // Draw floating golden coins
-      coinsRef.current = coinsRef.current.filter((coin) => {
-        coin.y -= coin.speed;
-        coin.x += coin.driftX;
-        coin.scale = Math.min(1.2, coin.scale + 0.003);
-        coin.rotation += 0.015;
-
-        // Fade in at bottom, fade out near top
-        if (coin.y > canvas.height * 0.7) {
-          coin.opacity = Math.min(0.9, coin.opacity + 0.03);
-        } else if (coin.y < canvas.height * 0.2) {
-          coin.opacity = Math.max(0, coin.opacity - 0.015);
-        }
-
-        if (coin.opacity <= 0 && coin.y < canvas.height * 0.2) {
-          return false;
-        }
-        if (coin.y < -100) {
-          return false;
-        }
-
-        ctx.save();
-        ctx.globalAlpha = coin.opacity;
-        ctx.translate(coin.x, coin.y);
-        ctx.rotate(coin.rotation);
-        ctx.scale(coin.scale, coin.scale);
-
-        const img = coin.type === 'qmy' ? qmyImageRef.current : icpImageRef.current;
-        if (img && img.complete && img.naturalWidth > 0) {
-          // Golden glow behind coin
-          const glowGrad = ctx.createRadialGradient(0, 0, coin.size * 0.3, 0, 0, coin.size * 1.5);
-          glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.35)');
-          glowGrad.addColorStop(1, 'rgba(255, 165, 0, 0)');
-          ctx.fillStyle = glowGrad;
-          ctx.beginPath();
-          ctx.arc(0, 0, coin.size * 1.5, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.drawImage(img, -coin.size, -coin.size, coin.size * 2, coin.size * 2);
-        } else {
-          // Fallback golden circle
-          const coinColor = coin.type === 'qmy' ? '#FFD700' : '#29ABE2';
-          const fallbackGrad = ctx.createRadialGradient(-coin.size * 0.3, -coin.size * 0.3, 0, 0, 0, coin.size);
-          fallbackGrad.addColorStop(0, '#FFF0A0');
-          fallbackGrad.addColorStop(0.5, coinColor);
-          fallbackGrad.addColorStop(1, '#B8860B');
-          ctx.fillStyle = fallbackGrad;
-          ctx.beginPath();
-          ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.fillStyle = 'rgba(255,255,255,0.8)';
-          ctx.font = `bold ${coin.size * 0.7}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(coin.type === 'qmy' ? 'Q' : 'I', 0, 0);
-        }
-
-        ctx.restore();
-
-        return true;
-      });
-
-      animationFrameRef.current = requestAnimationFrame(animate);
+      frame++;
+      animRef.current = requestAnimationFrame(draw);
     };
 
-    animationFrameRef.current = requestAnimationFrame(animate);
+    animRef.current = requestAnimationFrame(draw);
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      window.removeEventListener('resize', resizeCanvas);
+      cancelAnimationFrame(animRef.current);
+      window.removeEventListener('resize', resize);
     };
   }, []);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none"
+      className="absolute inset-0 w-full h-full pointer-events-none"
       style={{ zIndex: 0 }}
     />
   );

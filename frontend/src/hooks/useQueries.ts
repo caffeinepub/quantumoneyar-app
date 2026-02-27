@@ -1,37 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { UserProfile, Bonus, PlayerState } from '../backend';
+import { useInternetIdentity } from './useInternetIdentity';
+import { UserProfile, Bonus, VestingEntry } from '../backend';
 
-export interface GeoPoint {
-  latitude: number;
-  longitude: number;
-  label?: string;
-}
+// Re-export types used across the app
+export type { SpawnItem } from '../backend';
 
-export interface GeoType {
-  id: string;
-  lat: number;
-  lng: number;
-  type: string;
-}
-
-export function useGetPlayerState() {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  return useQuery<PlayerState>({
-    queryKey: ['playerState'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getPlayerState();
-    },
-    enabled: !!actor && !actorFetching,
-    staleTime: 0,
-    refetchOnWindowFocus: true,
-  });
-}
+// GeoPoint and GeoType re-exports for backward compatibility
+export type GeoPoint = { latitude: number; longitude: number };
+export type GeoType = 'coin' | 'monster';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
@@ -39,7 +20,7 @@ export function useGetCallerUserProfile() {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     retry: false,
   });
 
@@ -56,8 +37,8 @@ export function useSaveCallerUserProfile() {
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
+      if (!actor) throw new Error('Not authenticated');
+      await actor.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -65,8 +46,26 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+export function usePlayerState() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery({
+    queryKey: ['playerState'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getPlayerState();
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
 export function useGetClaimBonus() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<Bonus | null>({
     queryKey: ['claimBonus'],
@@ -74,30 +73,46 @@ export function useGetClaimBonus() {
       if (!actor) throw new Error('Actor not available');
       return actor.getClaimBonus();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     staleTime: 30_000,
-    refetchOnWindowFocus: true,
   });
 }
 
-export function useClaimBonus() {
+export function useClaimWelcomeBonus() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.claimBonus();
+      if (!actor) throw new Error('Not authenticated');
+      await actor.claimWelcomeBonus();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['claimBonus'] });
       queryClient.invalidateQueries({ queryKey: ['playerState'] });
+      queryClient.invalidateQueries({ queryKey: ['claimBonus'] });
+      queryClient.invalidateQueries({ queryKey: ['vestingSchedule'] });
     },
+  });
+}
+
+export function useGetVestingSchedule() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  return useQuery<VestingEntry[]>({
+    queryKey: ['vestingSchedule'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getVestingSchedule();
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    staleTime: 60_000,
   });
 }
 
 export function useQmySync() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery({
     queryKey: ['qmySync'],
@@ -109,7 +124,7 @@ export function useQmySync() {
       ]);
       return { playerState, bonus };
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     staleTime: 30_000,
     refetchOnWindowFocus: true,
   });

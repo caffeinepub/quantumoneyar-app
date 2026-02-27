@@ -1,29 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Crosshair, RotateCcw, Layers, MapPin, Coins, Ghost } from 'lucide-react';
+import { Crosshair, RotateCcw, MapPin, Coins, Ghost } from 'lucide-react';
 import { useSimulatedLocation } from '@/contexts/SimulatedLocationContext';
-import { MOCK_SPAWNS, getSpawnsNearLocation } from '@/lib/mockSpawns';
+import { MOCK_SPAWNS, getSpawnsNearPosition } from '@/lib/mockSpawns';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
-import { isSpawnCollected } from '@/lib/mockGameplayState';
+import { useGameState } from '@/contexts/GameStateContext';
+import { SpawnItem } from '@/backend';
 import { toast } from 'sonner';
 
 export default function StaticWorldMap() {
   const { identity } = useInternetIdentity();
+  const { isCoinLocked, isMonsterCaptured } = useGameState();
   const { location, isReady, presetLocations, currentPresetIndex, selectPreset, moveStep, recenter } = useSimulatedLocation();
   const [layersVisible, setLayersVisible] = useState({
     coins: true,
     monsters: true,
     player: true,
   });
-  const [nearbySpawns, setNearbySpawns] = useState(MOCK_SPAWNS);
-
-  const principal = identity?.getPrincipal().toString() || 'guest';
+  const [nearbySpawns, setNearbySpawns] = useState<SpawnItem[]>(MOCK_SPAWNS);
 
   // Update nearby spawns when location changes
   useEffect(() => {
     if (isReady) {
-      const nearby = getSpawnsNearLocation(location.latitude, location.longitude, 50); // 50m radius for map view
+      const nearby = getSpawnsNearPosition(location.latitude, location.longitude, 50);
       setNearbySpawns(nearby);
     }
   }, [location, isReady]);
@@ -70,8 +70,9 @@ export default function StaticWorldMap() {
     );
   }
 
-  const nearbyCoins = nearbySpawns.filter(s => s.type.startsWith('coin')).length;
-  const nearbyMonsters = nearbySpawns.filter(s => s.type.startsWith('monster')).length;
+  // Use spawnType field from SpawnItem (backend type)
+  const nearbyCoins = nearbySpawns.filter(s => s.spawnType === 'coin').length;
+  const nearbyMonsters = nearbySpawns.filter(s => s.spawnType === 'monster').length;
 
   return (
     <div className="relative w-full h-full bg-black flex flex-col">
@@ -99,11 +100,14 @@ export default function StaticWorldMap() {
 
         {/* Overlay: Spawn Markers */}
         {nearbySpawns.map((spawn) => {
-          const isCollected = isSpawnCollected(principal, spawn.id, spawn.type);
-          
+          // Determine collected/captured state from canister-backed state
+          const isCollected = spawn.spawnType === 'coin'
+            ? isCoinLocked(spawn.id)
+            : isMonsterCaptured(spawn.id);
+
           // Skip if layer is hidden
-          if (spawn.type.startsWith('coin') && !layersVisible.coins) return null;
-          if (spawn.type.startsWith('monster') && !layersVisible.monsters) return null;
+          if (spawn.spawnType === 'coin' && !layersVisible.coins) return null;
+          if (spawn.spawnType === 'monster' && !layersVisible.monsters) return null;
 
           // Calculate relative position (simplified for static map)
           const offsetX = (spawn.longitude - location.longitude) * 10000;
@@ -111,12 +115,20 @@ export default function StaticWorldMap() {
 
           let markerColor = '#FFD700';
           let markerIcon = '💰';
-          
-          if (spawn.type === 'coin-unlocked') {
-            markerColor = '#C0C0C0';
-            markerIcon = '🪙';
-          } else if (spawn.type.startsWith('monster')) {
-            markerColor = spawn.type === 'monster-legendary' ? '#9333ea' : spawn.type === 'monster-rare' ? '#3b82f6' : '#10b981';
+
+          if (spawn.spawnType === 'coin') {
+            const locked = isCoinLocked(spawn.id);
+            markerColor = locked ? '#FFD700' : '#C0C0C0';
+            markerIcon = locked ? '🔒' : '🪙';
+          } else if (spawn.spawnType === 'monster') {
+            const attrs = spawn.attributes || '';
+            if (attrs.includes('level:5')) {
+              markerColor = '#9333ea';
+            } else if (attrs.includes('level:3')) {
+              markerColor = '#3b82f6';
+            } else {
+              markerColor = '#10b981';
+            }
             markerIcon = '👾';
           }
 
@@ -135,16 +147,16 @@ export default function StaticWorldMap() {
               <div
                 className="w-8 h-8 rounded-full border-2 border-white shadow-lg flex items-center justify-center cursor-pointer transition-transform hover:scale-125"
                 style={{ backgroundColor: markerColor }}
-                title={spawn.name}
+                title={spawn.itemType}
               >
                 <span className="text-sm">{markerIcon}</span>
               </div>
-              
+
               {/* Tooltip */}
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black/90 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap border border-[#FFD700]/50">
-                <strong>{spawn.name}</strong>
+                <strong>{spawn.itemType}</strong>
                 <br />
-                {spawn.type.startsWith('coin') ? `${spawn.reward} QMY` : `${spawn.reward} XP`}
+                {spawn.spawnType === 'coin' ? '+10 XP' : '+20 XP'}
                 {isCollected && <><br /><span className="text-gray-400">✓ Collected</span></>}
               </div>
             </div>

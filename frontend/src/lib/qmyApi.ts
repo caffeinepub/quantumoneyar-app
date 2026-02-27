@@ -1,227 +1,119 @@
 /**
- * Quantumoney.app API client for frontend sync
- * MOCKED VERSION for frontend-only testing
- * Provides deterministic QMY balances, XP, and bonus history
- * XP mutation paths disabled - XP now comes from canister-backed state
+ * VISUAL FALLBACK ONLY — NOT THE SOURCE OF TRUTH.
+ * This module is used only as a visual fallback when the canister is unavailable.
+ * All real balances, XP, and history come from the canister via actor.getPlayerState()
+ * and actor.getClaimBonus(). Do NOT treat qmyApi as authoritative.
+ * The welcome bonus is delivered by the canister claimBonus() method, not here.
  */
 
-export interface QmyBalance {
-  unlocked: number;
-  locked: number;
-  total: number;
+export interface QmySyncData {
+  balance: number;
+  lockedBalance: number;
+  xp: number;
+  history: QmyHistoryEntry[];
 }
 
-export interface QmyBonusHistory {
-  timestamp: number;
+export interface QmyHistoryEntry {
+  type: string;
   amount: number;
-  type: 'registration' | 'unlock' | 'reward';
+  timestamp: number;
   description: string;
 }
 
-export interface QmySyncData {
-  balances: QmyBalance;
-  xp: number;
-  bonusHistory: QmyBonusHistory[];
-  lastSync: number;
-  available: boolean;
-}
-
 export interface QmySendRequest {
+  fromPrincipal: string;
   toLoginId: string;
   amount: number;
 }
 
 export interface QmyReceiveRequest {
-  fromLoginId: string;
+  principal: string;
+  amount: number;
 }
 
 export interface QmyTransferResponse {
   success: boolean;
   message: string;
-  txId?: string;
+  newBalance?: number;
 }
 
-const STORAGE_KEY_PREFIX = 'quantumoney_qmy_sync_';
-const BONUS_AWARDED_KEY = 'quantumoney_bonus_awarded_';
+const STORAGE_KEY = 'qmy_api_cache';
 
-interface StoredSyncData {
-  balances: QmyBalance;
+interface QmyApiCache {
+  balance: number;
+  lockedBalance: number;
   xp: number;
-  bonusHistory: QmyBonusHistory[];
-  bonusAwarded: boolean;
+  history: QmyHistoryEntry[];
 }
 
-function getStorageKey(principal: string): string {
-  return `${STORAGE_KEY_PREFIX}${principal}`;
-}
-
-function getBonusAwardedKey(principal: string): string {
-  return `${BONUS_AWARDED_KEY}${principal}`;
-}
-
-function loadStoredData(principal: string): StoredSyncData | null {
-  const key = getStorageKey(principal);
-  const stored = localStorage.getItem(key);
-  
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return null;
-    }
-  }
-  
-  return null;
-}
-
-function saveStoredData(principal: string, data: StoredSyncData): void {
-  const key = getStorageKey(principal);
-  localStorage.setItem(key, JSON.stringify(data));
-}
-
-function hasBonusBeenAwarded(principal: string): boolean {
-  const key = getBonusAwardedKey(principal);
-  return localStorage.getItem(key) === 'true';
-}
-
-function markBonusAwarded(principal: string): void {
-  const key = getBonusAwardedKey(principal);
-  localStorage.setItem(key, 'true');
-}
-
-/**
- * Fetch synced balances, XP, and bonus history
- * MOCKED: Returns deterministic data with one-time registration bonus
- * XP is now visual-only and not used for gameplay
- */
-export async function fetchQmySync(principal: string): Promise<QmySyncData> {
+function loadCache(): QmyApiCache {
   try {
-    const bonusAlreadyAwarded = hasBonusBeenAwarded(principal);
-    let stored = loadStoredData(principal);
-    
-    if (!stored && !bonusAlreadyAwarded) {
-      const now = Date.now();
-      stored = {
-        balances: {
-          unlocked: 100,
-          locked: 900,
-          total: 1000,
-        },
-        xp: 0, // XP starts at 0, managed by canister
-        bonusHistory: [
-          {
-            timestamp: now,
-            amount: 1000,
-            type: 'registration',
-            description: 'Registration bonus: 100 unlocked + 900 locked QMY',
-          },
-        ],
-        bonusAwarded: true,
-      };
-      
-      saveStoredData(principal, stored);
-      markBonusAwarded(principal);
-    } else if (!stored) {
-      stored = {
-        balances: {
-          unlocked: 100,
-          locked: 900,
-          total: 1000,
-        },
-        xp: 0,
-        bonusHistory: [
-          {
-            timestamp: Date.now() - 86400000,
-            amount: 1000,
-            type: 'registration',
-            description: 'Registration bonus: 100 unlocked + 900 locked QMY',
-          },
-        ],
-        bonusAwarded: true,
-      };
-      saveStoredData(principal, stored);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { balance: 0, lockedBalance: 0, xp: 0, history: [] };
+    return JSON.parse(raw);
+  } catch {
+    return { balance: 0, lockedBalance: 0, xp: 0, history: [] };
+  }
+}
+
+let cache: QmyApiCache = loadCache();
+
+export const qmyApi = {
+  getBalance(): number {
+    return cache.balance;
+  },
+
+  getLockedBalance(): number {
+    return cache.lockedBalance;
+  },
+
+  getXP(): number {
+    return cache.xp;
+  },
+
+  getBonusHistory(): QmyHistoryEntry[] {
+    return cache.history;
+  },
+
+  /** Update the visual cache from canister data. Call after every canister fetch. */
+  syncFromCanister(data: { balance: number; lockedBalance: number; xp: number }) {
+    cache = { ...cache, ...data };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+    } catch {
+      // Ignore
     }
-    
-    return {
-      balances: stored.balances,
-      xp: stored.xp,
-      bonusHistory: stored.bonusHistory,
-      lastSync: Date.now(),
-      available: true,
-    };
-  } catch (error) {
-    console.error('QMY sync error:', error);
-    
-    return {
-      balances: {
-        unlocked: 0,
-        locked: 0,
-        total: 0,
-      },
-      xp: 0,
-      bonusHistory: [],
-      lastSync: Date.now(),
-      available: false,
-    };
-  }
-}
+  },
+};
 
 /**
- * Update balances (for testing/simulation)
+ * Fallback fetch — returns cached data only. Not authoritative.
  */
-export function updateMockedBalances(principal: string, unlocked: number, locked: number): void {
-  const stored = loadStoredData(principal);
-  if (stored) {
-    stored.balances = {
-      unlocked,
-      locked,
-      total: unlocked + locked,
-    };
-    saveStoredData(principal, stored);
-  }
+export async function fetchQmySync(_principal: string): Promise<QmySyncData> {
+  return {
+    balance: cache.balance,
+    lockedBalance: cache.lockedBalance,
+    xp: cache.xp,
+    history: cache.history,
+  };
 }
 
 /**
- * XP mutation disabled - XP is now managed by canister
- * This function is kept for compatibility but does nothing
- */
-export function updateMockedXP(principal: string, xp: number): void {
-  // Disabled: XP is now managed by canister
-  console.warn('updateMockedXP is disabled - XP is managed by canister');
-}
-
-/**
- * UI-only send request (no real token movement)
+ * UI-only send — not a real transfer. Visual only.
  */
 export async function sendQmy(request: QmySendRequest): Promise<QmyTransferResponse> {
-  try {
-    return {
-      success: true,
-      message: 'Send request submitted (UI-only, pending live token)',
-      txId: `ui-${Date.now()}`,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error.message || 'Send request failed',
-    };
-  }
+  return {
+    success: false,
+    message: 'Transfers are processed on-chain. Please use the main Quantumoney.app.',
+  };
 }
 
 /**
- * UI-only receive request (no real token movement)
+ * UI-only receive — not a real transfer. Visual only.
  */
 export async function receiveQmy(request: QmyReceiveRequest): Promise<QmyTransferResponse> {
-  try {
-    return {
-      success: true,
-      message: 'Receive request submitted (UI-only, pending live token)',
-      txId: `ui-${Date.now()}`,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error.message || 'Receive request failed',
-    };
-  }
+  return {
+    success: false,
+    message: 'Transfers are processed on-chain. Please use the main Quantumoney.app.',
+  };
 }

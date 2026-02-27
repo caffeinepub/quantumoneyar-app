@@ -48,8 +48,20 @@ export interface Monster {
 export interface PlayerState {
   'id' : string,
   'xp' : bigint,
+  'lockedQMY' : number,
   'coinLocks' : Array<CoinLock>,
+  'lockedCoins' : Array<CoinLock>,
+  'unlockedQMY' : number,
+  'capturedMonsters' : Array<Monster>,
   'monsters' : Array<Monster>,
+}
+export interface SpawnItem {
+  'id' : string,
+  'latitude' : number,
+  'attributes' : string,
+  'longitude' : number,
+  'itemType' : string,
+  'spawnType' : string,
 }
 export type Timestamp = bigint;
 export interface UserProfile {
@@ -61,6 +73,12 @@ export interface UserProfile {
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export interface VestingEntry {
+  'unlockTimestamp' : Timestamp,
+  'installmentNumber' : bigint,
+  'unlocked' : boolean,
+  'amount' : number,
+}
 export interface _CaffeineStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -90,7 +108,9 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'captureMonster' : ActorMethod<[string], ActionResponse>,
   'claimBonus' : ActorMethod<[], undefined>,
+  'claimWelcomeBonus' : ActorMethod<[], undefined>,
   'getBonusStats' : ActorMethod<
     [],
     { 'maxUsers' : bigint, 'remaining' : bigint, 'registrationCount' : bigint }
@@ -99,11 +119,15 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getClaimBonus' : ActorMethod<[], [] | [Bonus]>,
   'getPlayerState' : ActorMethod<[], PlayerState>,
+  'getSpawnList' : ActorMethod<[], Array<SpawnItem>>,
   'getUserBonus' : ActorMethod<[Principal], [] | [Bonus]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getVestingSchedule' : ActorMethod<[], Array<VestingEntry>>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'lockCoin' : ActorMethod<[string], ActionResponse>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'setDisplayName' : ActorMethod<[string], undefined>,
+  'setProfilePhoto' : ActorMethod<[ExternalBlob], undefined>,
   'unlockCoin' : ActorMethod<[string], ActionResponse>,
 }
 export declare const idlService: IDL.ServiceClass;

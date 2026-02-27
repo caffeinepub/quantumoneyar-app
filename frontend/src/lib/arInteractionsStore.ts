@@ -1,70 +1,79 @@
-// Non-authoritative localStorage cache/mirror for AR interaction states.
-// The canister-backed PlayerState is the source of truth.
+// Non-authoritative localStorage cache for AR coin lock and monster capture states.
+// Synced from canister PlayerState on every fetch.
 
-const STORAGE_KEY = 'qmy_ar_interactions_v2';
+const STORAGE_KEY = 'arInteractionsStore';
 
-interface ARInteractionsState {
-  lockedCoins: Record<string, boolean>;
-  capturedMonsters: Record<string, boolean>;
+interface ArInteractionsState {
+  lockedCoins: string[];
+  capturedMonsters: string[];
 }
 
-function loadState(): ARInteractionsState {
+function load(): ArInteractionsState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // ignore
-  }
-  return { lockedCoins: {}, capturedMonsters: {} };
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        lockedCoins: Array.isArray(parsed.lockedCoins) ? parsed.lockedCoins : [],
+        capturedMonsters: Array.isArray(parsed.capturedMonsters) ? parsed.capturedMonsters : [],
+      };
+    }
+  } catch {}
+  return { lockedCoins: [], capturedMonsters: [] };
 }
 
-function saveState(state: ARInteractionsState) {
+function save(state: ArInteractionsState) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    // Emit storage event for cross-tab sync
+    // Emit storage event for cross-component sync
     window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 export const arInteractionsStore = {
-  getState(): ARInteractionsState {
-    return loadState();
+  getAll(): { lockedCoins: Set<string>; capturedMonsters: Set<string> } {
+    const state = load();
+    return {
+      lockedCoins: new Set(state.lockedCoins),
+      capturedMonsters: new Set(state.capturedMonsters),
+    };
   },
 
-  setLocked(coinId: string, locked: boolean) {
-    const state = loadState();
-    state.lockedCoins[coinId] = locked;
-    saveState(state);
+  isCoinLocked(id: string): boolean {
+    return load().lockedCoins.includes(id);
   },
 
-  setCaptured(monsterId: string, captured: boolean) {
-    const state = loadState();
-    state.capturedMonsters[monsterId] = captured;
-    saveState(state);
+  isMonsterCaptured(id: string): boolean {
+    return load().capturedMonsters.includes(id);
   },
 
-  isCoinLocked(coinId: string): boolean {
-    return loadState().lockedCoins[coinId] === true;
-  },
-
-  isMonsterCaptured(monsterId: string): boolean {
-    return loadState().capturedMonsters[monsterId] === true;
-  },
-
-  syncFromPlayerState(playerState: {
-    coinLocks: Array<{ id: string; locked: boolean }>;
-    monsters: Array<{ id: string; captured: boolean }>;
-  }) {
-    const state: ARInteractionsState = { lockedCoins: {}, capturedMonsters: {} };
-    for (const coin of playerState.coinLocks) {
-      state.lockedCoins[coin.id] = coin.locked;
+  lockCoin(id: string) {
+    const state = load();
+    if (!state.lockedCoins.includes(id)) {
+      state.lockedCoins.push(id);
+      save(state);
     }
-    for (const monster of playerState.monsters) {
-      state.capturedMonsters[monster.id] = monster.captured;
+  },
+
+  unlockCoin(id: string) {
+    const state = load();
+    state.lockedCoins = state.lockedCoins.filter((c) => c !== id);
+    save(state);
+  },
+
+  captureMonster(id: string) {
+    const state = load();
+    if (!state.capturedMonsters.includes(id)) {
+      state.capturedMonsters.push(id);
+      save(state);
     }
-    saveState(state);
+  },
+
+  syncFromIds(lockedCoinIds: string[], capturedMonsterIds: string[]) {
+    save({
+      lockedCoins: lockedCoinIds,
+      capturedMonsters: capturedMonsterIds,
+    });
   },
 
   clear() {

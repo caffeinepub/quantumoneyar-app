@@ -1,192 +1,103 @@
-export interface MockSpawn {
-  id: string;
-  type: 'coin-unlocked' | 'coin-locked' | 'monster-common' | 'monster-rare' | 'monster-legendary';
-  name: string;
-  latitude: number;
-  longitude: number;
-  reward: number;
-  metadata?: {
-    rarity?: string;
-    power?: number;
-    defense?: number;
-    speed?: number;
-  };
-}
+// FALLBACK ONLY — used when canister is unreachable
+import { SpawnItem } from '../backend';
+import { calculateDistance } from './haversine';
 
-// Predefined spawn positions around Évora, Portugal (default location)
-export const MOCK_SPAWNS: MockSpawn[] = [
-  // Unlocked coins (silver) - within 10m
+export const MOCK_SPAWNS: SpawnItem[] = [
   {
-    id: 'coin-u-1',
-    type: 'coin-unlocked',
-    name: 'Silver Coin Alpha',
+    id: 'coin_spawn_001',
+    spawnType: 'coin',
     latitude: 38.5667,
-    longitude: -7.9067,
-    reward: 5,
+    longitude: -7.9,
+    itemType: 'QMY_coin',
+    attributes: 'value:10,rarity:common',
   },
   {
-    id: 'coin-u-2',
-    type: 'coin-unlocked',
-    name: 'Silver Coin Beta',
-    latitude: 38.5668,
-    longitude: -7.9068,
-    reward: 5,
+    id: 'coin_spawn_002',
+    spawnType: 'coin',
+    latitude: 38.5700,
+    longitude: -7.905,
+    itemType: 'QMY_coin',
+    attributes: 'value:50,rarity:uncommon',
   },
   {
-    id: 'coin-u-3',
-    type: 'coin-unlocked',
-    name: 'Silver Coin Gamma',
-    latitude: 38.5666,
-    longitude: -7.9066,
-    reward: 5,
-  },
-  
-  // Locked coins (gold) - within 10m
-  {
-    id: 'coin-l-1',
-    type: 'coin-locked',
-    name: 'Gold Coin Alpha',
-    latitude: 38.5669,
-    longitude: -7.9069,
-    reward: 10,
+    id: 'coin_spawn_003',
+    spawnType: 'coin',
+    latitude: 38.5650,
+    longitude: -7.895,
+    itemType: 'QMY_coin',
+    attributes: 'value:100,rarity:rare',
   },
   {
-    id: 'coin-l-2',
-    type: 'coin-locked',
-    name: 'Gold Coin Beta',
-    latitude: 38.5665,
-    longitude: -7.9065,
-    reward: 10,
-  },
-  
-  // Common monsters - within 10m
-  {
-    id: 'monster-c-1',
-    type: 'monster-common',
-    name: 'Quantum Sprite',
-    latitude: 38.5670,
-    longitude: -7.9070,
-    reward: 15,
-    metadata: {
-      rarity: 'Common',
-      power: 50,
-      defense: 40,
-      speed: 60,
-    },
+    id: 'monster_spawn_001',
+    spawnType: 'monster',
+    latitude: 38.5680,
+    longitude: -7.902,
+    itemType: 'Quantumon_Alpha',
+    attributes: 'level:1,hp:100,xp_reward:20',
   },
   {
-    id: 'monster-c-2',
-    type: 'monster-common',
-    name: 'Pixel Beast',
-    latitude: 38.5664,
-    longitude: -7.9064,
-    reward: 15,
-    metadata: {
-      rarity: 'Common',
-      power: 45,
-      defense: 50,
-      speed: 55,
-    },
-  },
-  
-  // Rare monsters - slightly farther (15-20m)
-  {
-    id: 'monster-r-1',
-    type: 'monster-rare',
-    name: 'Cyber Dragon',
-    latitude: 38.5672,
-    longitude: -7.9072,
-    reward: 30,
-    metadata: {
-      rarity: 'Rare',
-      power: 75,
-      defense: 70,
-      speed: 80,
-    },
+    id: 'monster_spawn_002',
+    spawnType: 'monster',
+    latitude: 38.5640,
+    longitude: -7.908,
+    itemType: 'Quantumon_Beta',
+    attributes: 'level:3,hp:250,xp_reward:20',
   },
   {
-    id: 'monster-r-2',
-    type: 'monster-rare',
-    name: 'Neon Phoenix',
-    latitude: 38.5662,
-    longitude: -7.9062,
-    reward: 30,
-    metadata: {
-      rarity: 'Rare',
-      power: 80,
-      defense: 65,
-      speed: 85,
-    },
-  },
-  
-  // Legendary monster - farther out (25-30m)
-  {
-    id: 'monster-l-1',
-    type: 'monster-legendary',
-    name: 'Quantum Leviathan',
-    latitude: 38.5675,
-    longitude: -7.9075,
-    reward: 100,
-    metadata: {
-      rarity: 'Legendary',
-      power: 95,
-      defense: 90,
-      speed: 100,
-    },
-  },
-  
-  // Additional spawns for Lisboa preset
-  {
-    id: 'coin-u-lisboa-1',
-    type: 'coin-unlocked',
-    name: 'Lisboa Silver',
-    latitude: 38.7223,
-    longitude: -9.1393,
-    reward: 5,
+    id: 'monster_spawn_003',
+    spawnType: 'monster',
+    latitude: 38.5710,
+    longitude: -7.898,
+    itemType: 'Quantumon_Gamma',
+    attributes: 'level:5,hp:500,xp_reward:20',
   },
   {
-    id: 'coin-l-lisboa-1',
-    type: 'coin-locked',
-    name: 'Lisboa Gold',
-    latitude: 38.7224,
-    longitude: -9.1394,
-    reward: 10,
+    id: 'coin_spawn_004',
+    spawnType: 'coin',
+    latitude: 38.5720,
+    longitude: -7.910,
+    itemType: 'QMY_coin',
+    attributes: 'value:25,rarity:common',
   },
   {
-    id: 'monster-c-lisboa-1',
-    type: 'monster-common',
-    name: 'Lisboa Guardian',
-    latitude: 38.7225,
-    longitude: -9.1395,
-    reward: 15,
-    metadata: {
-      rarity: 'Common',
-      power: 55,
-      defense: 45,
-      speed: 50,
-    },
+    id: 'monster_spawn_004',
+    spawnType: 'monster',
+    latitude: 38.5630,
+    longitude: -7.892,
+    itemType: 'Quantumon_Delta',
+    attributes: 'level:2,hp:150,xp_reward:20',
+  },
+  {
+    id: 'coin_spawn_005',
+    spawnType: 'coin',
+    latitude: 38.5690,
+    longitude: -7.915,
+    itemType: 'QMY_coin',
+    attributes: 'value:75,rarity:uncommon',
+  },
+  {
+    id: 'monster_spawn_005',
+    spawnType: 'monster',
+    latitude: 38.5660,
+    longitude: -7.888,
+    itemType: 'Quantumon_Epsilon',
+    attributes: 'level:4,hp:350,xp_reward:20',
   },
 ];
 
-export function getSpawnsNearLocation(lat: number, lng: number, radiusMeters: number): MockSpawn[] {
-  return MOCK_SPAWNS.filter(spawn => {
-    const distance = calculateDistance(lat, lng, spawn.latitude, spawn.longitude);
-    return distance <= radiusMeters;
+// Alias for backward compatibility
+export const mockSpawns = MOCK_SPAWNS;
+
+export function getSpawnsNearPosition(
+  lat: number,
+  lng: number,
+  radiusMeters: number
+): SpawnItem[] {
+  return MOCK_SPAWNS.filter((spawn) => {
+    const dist = calculateDistance(lat, lng, spawn.latitude, spawn.longitude);
+    return dist <= radiusMeters;
   });
 }
 
-// Haversine formula for distance calculation
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = (lat1 * Math.PI) / 180;
-  const φ2 = (lat2 * Math.PI) / 180;
-  const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-  const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-  const a =
-    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
+// Alias for backward compatibility
+export const getSpawnsNearLocation = getSpawnsNearPosition;

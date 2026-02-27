@@ -1,53 +1,50 @@
 import { useMemo } from 'react';
-import { calculateDistance } from '@/lib/haversine';
+import { SpawnItem } from '../../../backend';
+import { calculateDistance } from '../../../lib/haversine';
 import { getAngularTolerance } from './tolerance';
 import { calculateBearing, normalizeAngleDifference } from './arMath';
-import type { MockSpawn } from '@/lib/mockSpawns';
-import type { UserPosition } from '@/contexts/GeolocationContext';
 
-interface UseArVisibilityProps {
-  userPosition: UserPosition | null;
-  userHeading: number | null;
-  userXP: number;
-  allObjects: MockSpawn[];
+interface Position {
+  latitude: number;
+  longitude: number;
 }
 
-export function useArVisibility({
-  userPosition,
-  userHeading,
-  userXP,
-  allObjects,
-}: UseArVisibilityProps): MockSpawn[] {
+interface UseArVisibilityParams {
+  spawns: SpawnItem[];
+  position: Position | null;
+  heading: number;
+  xp: number;
+}
+
+const MAX_VISIBLE_DISTANCE = 200; // meters
+
+export function useArVisibility({ spawns, position, heading, xp }: UseArVisibilityParams): SpawnItem[] {
   return useMemo(() => {
-    if (!userPosition || userHeading === null) {
-      return [];
-    }
+    if (!position) return spawns.slice(0, 5); // Show some spawns even without GPS
 
-    const radiusMeters = userXP;
-    const tolerance = getAngularTolerance(userXP);
+    const tolerance = getAngularTolerance(xp);
 
-    return allObjects.filter((obj) => {
-      const distance = calculateDistance(
-        userPosition.latitude,
-        userPosition.longitude,
-        obj.latitude,
-        obj.longitude
+    return spawns.filter((spawn) => {
+      const dist = calculateDistance(
+        position.latitude,
+        position.longitude,
+        spawn.latitude,
+        spawn.longitude
       );
 
-      if (distance > radiusMeters) {
-        return false;
-      }
+      if (dist > MAX_VISIBLE_DISTANCE) return false;
+
+      // If heading is 0 (no compass), show all nearby spawns
+      if (heading === 0) return true;
 
       const bearing = calculateBearing(
-        userPosition.latitude,
-        userPosition.longitude,
-        obj.latitude,
-        obj.longitude
+        position.latitude,
+        position.longitude,
+        spawn.latitude,
+        spawn.longitude
       );
 
-      const angleDiff = normalizeAngleDifference(bearing - userHeading);
-
-      return Math.abs(angleDiff) <= tolerance;
+      return Math.abs(normalizeAngleDifference(bearing - heading)) <= tolerance;
     });
-  }, [userPosition, userHeading, userXP, allObjects]);
+  }, [spawns, position, heading, xp]);
 }

@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-the-ability-for-authenticated-users-to-choose-and-upload-a-personal-profile-photo-from-the-profile-page-profile-tsx-store-the-photo-as-a-blob-in-the-backend-actor-per-principal-display-the-chosen-photo-in-the-profile-page-header-and-in-the-header-component-auth-dropdown-fall-back-to-a-default-avatar-icon-if-no-photo-is-set",
-      "featureTitle": "Add the ability for authenticated users to choose and upload a personal profile photo from the Profile page (Profile.tsx). Store the photo as a blob in the backend actor per principal. Display the chosen photo in the Profile page header and in the Header component auth dropdown. Fall back to a default avatar icon if no photo is set.",
+      "featureId": "feature-rebuild-gamestatecontext-frontend-src-contexts-gamestatecontext-tsx-to-fetch-all-player-data-exclusively-from-the-backend-canister-via-the-authenticated-actor-on-mount-and-on-window-focus-call-getplayerstate-and-getvestingschedule-expose-xp-lockedqmy-unlockedqmy-capturedmonsters-lockedcoins-vestingschedule-and-refetch-remove-all-localstorage-only-derivations-for-these-values-the-context-must-also-expose-a-triggerwelcomebonus-function-that-calls-claimwelcomebonus-on-the-canister-and-refetches-state",
+      "featureTitle": "Rebuild GameStateContext (frontend/src/contexts/GameStateContext.tsx) to fetch all player data exclusively from the backend canister via the authenticated actor. On mount (and on window focus), call getPlayerState and getVestingSchedule. Expose xp, lockedQMY, unlockedQMY, capturedMonsters, lockedCoins, vestingSchedule, and refetch. Remove all localStorage-only derivations for these values. The context must also expose a triggerWelcomeBonus function that calls claimWelcomeBonus on the canister and refetches state.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/sections/Profile.tsx"
+        "frontend/src/contexts/GameStateContext.tsx"
       ],
       "components": [
         "blob-storage@4.0.0",
@@ -21,13 +20,36 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-14"
+        "REQ-29"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-award-20-xp-to-the-player-whenever-a-monster-is-successfully-rescued-captured-in-the-ar-camera-view-cameraaractionbar-monster-rescue-flow-this-xp-delta-must-be-applied-via-the-same-backend-xp-mutation-used-for-lock-unlock-actions-and-must-also-be-reflected-immediately-in-the-frontend-gamestatecontext-and-profile-page",
-      "featureTitle": "Award +20 XP to the player whenever a monster is successfully rescued/captured in the AR camera view (CameraARActionBar / monster rescue flow). This XP delta must be applied via the same backend XP mutation used for lock/unlock actions and must also be reflected immediately in the frontend GameStateContext and Profile page.",
+      "featureId": "feature-rebuild-usearactions-ts-frontend-src-hooks-usearactions-ts-so-that-uselockcoin-useunlockcoin-and-usecapturemonster-are-react-query-mutations-that-call-the-real-backend-actor-endpoints-lockcoin-unlockcoin-and-capturemonster-respectively-passing-the-spawnid-on-success-each-mutation-must-invalidate-the-playerstate-query-so-gamestatecontext-refreshes-from-the-canister-and-must-update-arinteractionsstore-and-mockgameplaystate-as-fallback-cache-remove-any-stub-or-simulation-logic",
+      "featureTitle": "Rebuild useArActions.ts (frontend/src/hooks/useArActions.ts) so that useLockCoin, useUnlockCoin, and useCaptureMonster are React Query mutations that call the real backend actor endpoints lockCoin, unlockCoin, and captureMonster respectively, passing the spawnId. On success, each mutation must invalidate the playerState query so GameStateContext refreshes from the canister, and must update arInteractionsStore and mockGameplayState (as fallback cache). Remove any stub or simulation logic.",
+      "files": [
+        "frontend/src/hooks/useArActions.ts"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-30"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-rebuild-cameraaractionbar-frontend-src-components-sections-cameraar-cameraaractionbar-tsx-to-be-fully-playable-1-show-a-lock-qmy-button-when-the-nearest-visible-ar-object-is-a-coin-and-it-is-not-yet-locked-on-click-call-uselockcoin-with-that-spawn-s-id-and-show-a-loading-spinner-during-the-mutation-2-show-an-unlock-qmy-button-when-the-nearest-visible-coin-is-locked-on-click-call-useunlockcoin-with-that-spawn-s-id-and-show-a-loading-spinner-3-show-a-rescue-monster-button-when-the-nearest-visible-ar-object-is-a-monster-and-it-is-not-yet-captured-on-click-call-usecapturemonster-then-display-spawncollectfx-and-add-a-creature-capture-event-via-usegameplayhistory-4-show-an-xp-change-toast-10-15-or-20-after-each-successful-mutation-lock-and-unlock-actions-must-only-be-available-on-the-ar-page",
+      "featureTitle": "Rebuild CameraARActionBar (frontend/src/components/sections/CameraAR/CameraARActionBar.tsx) to be fully playable: (1) Show a 'Lock QMY' button when the nearest visible AR object is a coin and it is not yet locked — on click, call useLockCoin with that spawn's ID and show a loading spinner during the mutation. (2) Show an 'Unlock QMY' button when the nearest visible coin is locked — on click, call useUnlockCoin with that spawn's ID and show a loading spinner. (3) Show a 'Rescue Monster' button when the nearest visible AR object is a monster and it is not yet captured — on click, call useCaptureMonster, then display SpawnCollectFX, and add a 'creature-capture' event via useGameplayHistory. (4) Show an XP change toast (+10, -15, or +20) after each successful mutation. Lock and Unlock actions must only be available on the AR page.",
       "files": [
         "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx"
       ],
@@ -44,16 +66,18 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-15"
+        "REQ-31"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-dynamic-animated-space-background-on-the-home-hud-page-using-the-existing-homespacebackground-canvas-component-the-background-must-render-twinkling-stars-floating-planets-comets-and-slowly-drifting-golden-icp-and-qmy-coin-images-ensure-the-component-is-actively-rendered-on-the-hud-home-section-and-is-not-obstructed-by-overlaid-cards",
-      "featureTitle": "Implement a dynamic animated space background on the HOME / HUD page using the existing HomeSpaceBackground canvas component. The background must render twinkling stars, floating planets, comets, and slowly drifting golden ICP and QMY coin images. Ensure the component is actively rendered on the HUD/Home section and is not obstructed by overlaid cards.",
+      "featureId": "feature-rebuild-the-spawn-data-layer-fetch-the-canonical-spawn-list-from-the-canister-via-getspawnlist-on-app-load-via-a-react-query-hook-usespawnlist-store-the-result-in-a-context-or-module-level-cache-accessible-to-the-ar-overlay-leaflet-map-and-action-bar-the-mockspawns-ts-list-in-frontend-src-lib-mockspawns-ts-must-be-used-only-as-a-fallback-when-the-canister-call-fails-and-must-be-clearly-labeled-with-a-comment-fallback-only-used-when-canister-is-unreachable-real-canister-spawn-data-must-always-take-precedence",
+      "featureTitle": "Rebuild the spawn data layer: fetch the canonical spawn list from the canister via getSpawnList on app load (via a React Query hook useSpawnList). Store the result in a context or module-level cache accessible to the AR overlay, Leaflet map, and action bar. The mockSpawns.ts list in frontend/src/lib/mockSpawns.ts must be used only as a fallback when the canister call fails, and must be clearly labeled with a comment '// FALLBACK ONLY — used when canister is unreachable'. Real canister spawn data must always take precedence.",
       "files": [
-        "frontend/src/components/sections/HUD.tsx",
-        "frontend/src/components/sections/HomeSpaceBackground.tsx"
+        "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
+        "frontend/src/components/sections/MapMundoLeaflet.tsx",
+        "frontend/src/hooks/useSpawnList.ts",
+        "frontend/src/lib/mockSpawns.ts"
       ],
       "components": [
         "blob-storage@4.0.0",
@@ -68,15 +92,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-16"
+        "REQ-32"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-reference-to-the-icp-cryptocurrency-in-the-footer-component-footer-tsx-alongside-the-existing-social-share-links-whatsapp-x-telegram-instagram-the-icp-reference-must-include-the-icp-logo-icon-and-a-short-label-e-g-powered-by-icp-the-footer-must-remain-compact-in-height-and-must-not-include-any-caffeine-branding",
-      "featureTitle": "Add a reference to the ICP cryptocurrency in the Footer component (Footer.tsx), alongside the existing social share links (WhatsApp, X, Telegram, Instagram). The ICP reference must include the ICP logo/icon and a short label (e.g., 'Powered by ICP'). The footer must remain compact in height and must not include any Caffeine branding.",
+      "featureId": "feature-rebuild-the-hud-page-frontend-src-components-sections-hud-tsx-remove-all-floating-drifting-animated-coin-graphics-replace-them-with-static-realistic-qmy-coin-images-displayed-as-decorative-elements-e-g-a-row-or-cluster-of-3d-style-golden-qmy-coin-images-the-animated-space-background-stars-planets-comets-from-homespacebackground-must-remain-active-display-the-player-s-real-xp-locked-qmy-and-unlocked-qmy-from-gamestatecontext-show-a-go-to-quantumoney-app-button-that-opens-https-quantumoney-app-in-a-new-tab-on-first-login-automatically-trigger-claimwelcomebonus-and-show-the-welcomebonusmodal",
+      "featureTitle": "Rebuild the HUD page (frontend/src/components/sections/HUD.tsx): remove all floating/drifting animated coin graphics. Replace them with static realistic QMY coin images displayed as decorative elements (e.g., a row or cluster of 3D-style golden QMY coin images). The animated space background (stars, planets, comets) from HomeSpaceBackground must remain active. Display the player's real XP, locked QMY, and unlocked QMY from GameStateContext. Show a 'Go to Quantumoney.app' button that opens https://quantumoney.app in a new tab. On first login, automatically trigger claimWelcomeBonus and show the WelcomeBonusModal.",
       "files": [
-        "frontend/src/components/Footer.tsx"
+        "frontend/src/components/sections/HUD.tsx"
       ],
       "components": [
         "blob-storage@4.0.0",
@@ -91,15 +115,14 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-17"
+        "REQ-33"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-profile-page-profile-tsx-displays-the-player-s-username-display-name-as-stored-in-the-backend-user-profile-e-g-htgamers-synced-via-the-same-internet-identity-principal-used-on-quantumoney-app-the-name-must-be-editable-inline-on-the-profile-page-and-persisted-to-the-backend-actor-so-that-changes-reflect-on-both-apps",
-      "featureTitle": "Ensure the Profile page (Profile.tsx) displays the player's username/display name as stored in the backend user profile (e.g., 'HTgamers'), synced via the same Internet Identity principal used on Quantumoney.app. The name must be editable inline on the Profile page and persisted to the backend actor so that changes reflect on both apps.",
+      "featureId": "feature-rebuild-the-profile-page-frontend-src-components-sections-profile-tsx-to-read-all-data-exclusively-from-the-canister-displayname-via-getuserprofile-xp-lockedqmy-unlockedqmy-capturedmonsters-count-and-vestingschedule-from-gamestatecontext-the-display-name-must-be-editable-inline-and-saved-via-setdisplayname-canister-call-profile-photo-upload-must-call-setprofilephoto-on-the-canister-and-display-the-stored-photo-fall-back-to-a-default-avatar-if-none-set-remove-all-localstorage-only-derivations-for-these-values",
+      "featureTitle": "Rebuild the Profile page (frontend/src/components/sections/Profile.tsx) to read all data exclusively from the canister: displayName via getUserProfile, XP, lockedQMY, unlockedQMY, capturedMonsters count, and vestingSchedule from GameStateContext. The display name must be editable inline and saved via setDisplayName canister call. Profile photo upload must call setProfilePhoto on the canister and display the stored photo; fall back to a default avatar if none set. Remove all localStorage-only derivations for these values.",
       "files": [
-        "frontend/src/components/Header.tsx",
         "frontend/src/components/sections/Profile.tsx"
       ],
       "components": [
@@ -115,7 +138,54 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-18"
+        "REQ-34"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-rebuild-the-leaflet-map-integration-so-that-spawn-markers-in-both-public-map-map-js-and-the-mapmundoleaflet-react-component-frontend-src-components-sections-mapmundoleaflet-tsx-reflect-the-real-time-lock-and-capture-states-from-the-canister-via-arinteractionsstore-which-is-synced-from-canister-playerstate-coins-that-are-locked-must-display-a-locked-visual-marker-monsters-that-are-captured-must-display-a-captured-visual-marker-the-map-must-receive-updated-state-via-postmessage-whenever-arinteractionsstore-changes",
+      "featureTitle": "Rebuild the Leaflet map integration so that spawn markers in both /public/map/map.js and the MapMundoLeaflet React component (frontend/src/components/sections/MapMundoLeaflet.tsx) reflect the real-time lock and capture states from the canister (via arInteractionsStore which is synced from canister PlayerState). Coins that are locked must display a locked visual marker; monsters that are captured must display a captured visual marker. The map must receive updated state via postMessage whenever arInteractionsStore changes.",
+      "files": [
+        "frontend/public/map/map.js",
+        "frontend/src/components/sections/MapMundoLeaflet.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-35"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-generate-a-realistic-3d-style-golden-qmy-coin-image-to-be-used-as-a-static-decorative-asset-on-the-hud-page-the-coin-should-have-a-metallic-gold-surface-with-qmy-text-engraved-on-the-face-a-ridged-edge-and-subtle-light-reflections-to-look-like-a-physical-cryptocurrency-coin",
+      "featureTitle": "Generate a realistic 3D-style golden QMY coin image to be used as a static decorative asset on the HUD page. The coin should have a metallic gold surface with 'QMY' text engraved on the face, a ridged edge, and subtle light reflections to look like a physical cryptocurrency coin.",
+      "files": [
+        "frontend/src/components/sections/HUD.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-36"
       ],
       "confidence": "high"
     }

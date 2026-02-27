@@ -1,146 +1,108 @@
 import React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Gift, Lock, Unlock, TrendingUp } from 'lucide-react';
+import { X, Lock, Unlock, Star, Zap } from 'lucide-react';
 
 interface WelcomeBonusModalProps {
   onClose: () => void;
 }
 
-const VESTING_MONTHS = Array.from({ length: 9 }, (_, i) => ({
-  month: i + 1,
-  amount: 100,
-  cumulative: (i + 1) * 100,
-}));
-
-export default function WelcomeBonusModal({ onClose }: WelcomeBonusModalProps) {
+export function WelcomeBonusModal({ onClose }: WelcomeBonusModalProps) {
   const queryClient = useQueryClient();
 
   const handleClose = () => {
-    queryClient.invalidateQueries({ queryKey: ['claimBonus'] });
     queryClient.invalidateQueries({ queryKey: ['playerState'] });
+    queryClient.invalidateQueries({ queryKey: ['claimBonus'] });
+    queryClient.invalidateQueries({ queryKey: ['vestingSchedule'] });
     onClose();
   };
 
+  const vestingMonths = Array.from({ length: 9 }, (_, i) => ({
+    month: i + 1,
+    amount: 100,
+  }));
+
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center z-[200] p-4"
-      style={{ background: 'rgba(0,0,0,0.85)' }}
-    >
-      <div
-        className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4"
-        style={{
-          background: 'rgba(10,10,10,0.95)',
-          border: '2px solid #FFD700',
-          boxShadow: '0 0 40px rgba(255,215,0,0.3)',
-        }}
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-gradient-to-b from-yellow-950 to-black border border-gold/40 rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl shadow-gold/20">
         {/* Header */}
-        <div className="flex flex-col items-center gap-2">
-          <Gift size={40} style={{ color: '#FFD700' }} />
-          <h2 className="text-xl font-bold text-center" style={{ color: '#FFD700' }}>
-            Welcome Bonus!
-          </h2>
-          <p className="text-sm text-center" style={{ color: 'rgba(255,215,0,0.7)' }}>
-            You've received your registration bonus
-          </p>
+        <div className="relative bg-gradient-to-r from-yellow-600/30 to-amber-600/20 px-6 pt-6 pb-4 text-center">
+          <button
+            onClick={handleClose}
+            className="absolute top-4 right-4 text-white/60 hover:text-white"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <div className="text-5xl mb-2">🎁</div>
+          <h2 className="text-xl font-bold text-gold font-display">Welcome Bonus!</h2>
+          <p className="text-white/60 text-sm mt-1">You've received your starter pack</p>
         </div>
 
         {/* Bonus breakdown */}
-        <div className="flex flex-col gap-3">
-          <div
-            className="flex items-center justify-between p-3 rounded-lg"
-            style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)' }}
-          >
-            <div className="flex items-center gap-2">
-              <Unlock size={18} style={{ color: '#FFD700' }} />
-              <span className="text-sm font-semibold" style={{ color: '#FFD700' }}>
-                Unlocked Now
-              </span>
+        <div className="px-6 py-4 space-y-3">
+          {/* XP */}
+          <div className="flex items-center gap-3 bg-gold/10 rounded-xl p-3 border border-gold/20">
+            <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center">
+              <Star className="w-5 h-5 text-gold" />
             </div>
-            <span className="font-bold text-lg" style={{ color: '#FFD700' }}>
-              100 QMY
-            </span>
+            <div>
+              <div className="text-gold font-bold text-lg">+100 XP</div>
+              <div className="text-white/50 text-xs">Experience Points</div>
+            </div>
           </div>
 
-          <div
-            className="flex items-center justify-between p-3 rounded-lg"
-            style={{ background: 'rgba(192,192,192,0.1)', border: '1px solid rgba(192,192,192,0.3)' }}
-          >
-            <div className="flex items-center gap-2">
-              <Lock size={18} style={{ color: '#C0C0C0' }} />
-              <span className="text-sm font-semibold" style={{ color: '#C0C0C0' }}>
-                Vesting (9 months)
-              </span>
+          {/* Unlocked QMY */}
+          <div className="flex items-center gap-3 bg-green-900/20 rounded-xl p-3 border border-green-500/20">
+            <div className="w-10 h-10 rounded-full bg-green-900/40 flex items-center justify-center">
+              <Unlock className="w-5 h-5 text-green-400" />
             </div>
-            <span className="font-bold text-lg" style={{ color: '#C0C0C0' }}>
-              900 QMY
-            </span>
+            <div>
+              <div className="text-green-400 font-bold text-lg">100 QMY Unlocked</div>
+              <div className="text-white/50 text-xs">Available immediately</div>
+            </div>
           </div>
 
-          <div
-            className="flex items-center justify-between p-3 rounded-lg"
-            style={{ background: 'rgba(100,200,100,0.1)', border: '1px solid rgba(100,200,100,0.3)' }}
-          >
-            <div className="flex items-center gap-2">
-              <TrendingUp size={18} style={{ color: '#64C864' }} />
-              <span className="text-sm font-semibold" style={{ color: '#64C864' }}>
-                Bonus XP
-              </span>
+          {/* Locked QMY */}
+          <div className="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-white/60" />
             </div>
-            <span className="font-bold text-lg" style={{ color: '#64C864' }}>
-              +100 XP
-            </span>
+            <div>
+              <div className="text-white font-bold text-lg">900 QMY Locked</div>
+              <div className="text-white/50 text-xs">Released over 9 months</div>
+            </div>
+          </div>
+
+          {/* Vesting schedule */}
+          <div className="bg-white/3 rounded-xl p-3 border border-white/10">
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="w-4 h-4 text-gold" />
+              <span className="text-gold text-xs font-semibold">Vesting Schedule</span>
+            </div>
+            <div className="grid grid-cols-3 gap-1">
+              {vestingMonths.map(({ month, amount }) => (
+                <div key={month} className="text-center bg-white/5 rounded-lg py-1">
+                  <div className="text-xs text-white/40">M{month}</div>
+                  <div className="text-xs font-bold text-gold">{amount}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-white/30 text-center mt-2">
+              100 QMY unlocked every 30 days
+            </p>
           </div>
         </div>
 
-        {/* Vesting schedule */}
-        <div>
-          <p className="text-xs font-bold mb-2" style={{ color: 'rgba(255,215,0,0.7)' }}>
-            Monthly Vesting Schedule (100 QMY/month)
-          </p>
-          <div className="flex gap-1 flex-wrap">
-            {VESTING_MONTHS.map(({ month }) => (
-              <div
-                key={month}
-                className="flex items-center justify-center w-7 h-7 rounded text-xs font-bold"
-                style={{
-                  background: 'rgba(255,215,0,0.1)',
-                  border: '1px solid rgba(255,215,0,0.3)',
-                  color: '#FFD700',
-                }}
-              >
-                {month}
-              </div>
-            ))}
-          </div>
-          <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            100 QMY unlocked each month for 9 months
-          </p>
+        {/* CTA */}
+        <div className="px-6 pb-6">
+          <button
+            onClick={handleClose}
+            className="w-full py-3 rounded-2xl font-bold text-black
+              bg-gradient-to-r from-yellow-400 to-amber-500
+              shadow-lg shadow-yellow-500/30 active:scale-95 transition-all"
+          >
+            Start Playing! 🚀
+          </button>
         </div>
-
-        {/* Total */}
-        <div
-          className="flex items-center justify-between p-3 rounded-lg"
-          style={{ background: 'rgba(255,215,0,0.15)', border: '1.5px solid #FFD700' }}
-        >
-          <span className="font-bold" style={{ color: '#FFD700' }}>
-            Total Bonus
-          </span>
-          <span className="font-bold text-xl" style={{ color: '#FFD700' }}>
-            1,000 QMY
-          </span>
-        </div>
-
-        <button
-          onClick={handleClose}
-          className="w-full py-3 rounded-xl font-bold text-base transition-all active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-            color: '#000',
-          }}
-        >
-          Start Playing!
-        </button>
       </div>
     </div>
   );

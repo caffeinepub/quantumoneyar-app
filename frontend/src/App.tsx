@@ -27,6 +27,7 @@ export type Section =
   | 'hud'
   | 'profile'
   | 'ar-view'
+  | 'ar-camera'
   | 'map'
   | 'rules-tutorial'
   | 'beta-qa-checklist'
@@ -43,6 +44,7 @@ const pathToSection: Record<string, Section> = {
   '/profile': 'profile',
   '/ar': 'ar-view',
   '/ar-view': 'ar-view',
+  '/ar-camera': 'ar-camera',
   '/map': 'map',
   '/rules': 'rules-tutorial',
   '/rules-tutorial': 'rules-tutorial',
@@ -60,6 +62,7 @@ const sectionToPath: Record<Section, string> = {
   'hud': '/',
   'profile': '/profile',
   'ar-view': '/ar',
+  'ar-camera': '/ar-camera',
   'map': '/map',
   'rules-tutorial': '/rules',
   'beta-qa-checklist': '/qa',
@@ -114,7 +117,8 @@ function AppContent() {
       case 'profile':
         return <Profile />;
       case 'ar-view':
-        return <CameraARPage onNavigate={handleNavigate} />;
+      case 'ar-camera':
+        return <CameraARPage />;
       case 'map':
         return <LeafletMapPage />;
       case 'rules-tutorial':
@@ -136,22 +140,26 @@ function AppContent() {
     }
   };
 
-  const showFooter = activeSection !== 'hud' && activeSection !== 'ar-view' && activeSection !== 'map';
+  const showFooter =
+    activeSection !== 'hud' &&
+    activeSection !== 'ar-view' &&
+    activeSection !== 'ar-camera' &&
+    activeSection !== 'map';
 
   return (
     <div className="min-h-dvh flex flex-col bg-background">
       <Header
-        activeSection={activeSection}
+        currentSection={activeSection}
         onNavigate={handleNavigate}
-        onMenuClick={() => setDrawerOpen(true)}
+        onMenuOpen={() => setDrawerOpen(true)}
       />
 
       <main
         className="flex-1 flex flex-col"
         style={{
-          paddingTop: '56px',
-          paddingBottom: showFooter ? '0' : 'calc(64px + env(safe-area-inset-bottom))',
-          minHeight: showFooter ? 'auto' : 'calc(100dvh - 56px - 64px - env(safe-area-inset-bottom))',
+          paddingTop: '48px',
+          paddingBottom: showFooter ? '0' : 'calc(56px + env(safe-area-inset-bottom))',
+          minHeight: showFooter ? 'auto' : 'calc(100dvh - 48px - 56px - env(safe-area-inset-bottom))',
         }}
       >
         {renderSection()}
@@ -159,7 +167,7 @@ function AppContent() {
 
       {showFooter && <Footer />}
 
-      <BottomNav activeSection={activeSection} onNavigate={handleNavigate} />
+      <BottomNav currentSection={activeSection} onNavigate={handleNavigate} />
 
       <SideDrawer
         activeSection={activeSection}

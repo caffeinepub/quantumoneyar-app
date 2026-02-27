@@ -6,7 +6,7 @@ import { useGameState } from '@/contexts/GameStateContext';
 import { Loader2 } from 'lucide-react';
 import { GameplayHUD } from '@/components/gameplay/GameplayHUD';
 import { UniverseBackdrop } from '@/components/gameplay/UniverseBackdrop';
-import { getSpawnsNearLocation } from '@/lib/mockSpawns';
+import { getSpawnsNearPosition } from '@/lib/mockSpawns';
 import { useWalkingMeters } from '@/hooks/useWalkingMeters';
 
 export default function LeafletMapPage() {
@@ -40,7 +40,7 @@ export default function LeafletMapPage() {
 
   const nearbySpawns =
     simulatedReady || geoPosition
-      ? getSpawnsNearLocation(currentLocation.latitude, currentLocation.longitude, 10)
+      ? getSpawnsNearPosition(currentLocation.latitude, currentLocation.longitude, 10)
       : [];
 
   useEffect(() => {

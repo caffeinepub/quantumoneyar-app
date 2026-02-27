@@ -1,8 +1,8 @@
 import React from 'react';
-import { calculateBearing, normalizeAngleDifference, projectToScreen } from './arMath';
-import { getSpriteForObject } from './sprites';
-import { useArInteractions } from '../../../hooks/useArInteractions';
-import type { MockSpawn } from '../../../lib/mockSpawns';
+import { SpawnItem } from '../../../backend';
+import { getSpriteForType } from './sprites';
+import { calculateBearing, projectToScreen } from './arMath';
+import { calculateDistance } from '../../../lib/haversine';
 
 interface Position {
   latitude: number;
@@ -10,97 +10,89 @@ interface Position {
 }
 
 interface OverlayLayerProps {
-  visibleObjects: MockSpawn[];
-  heading: number;
+  spawns: SpawnItem[];
   position: Position;
+  heading: number;
+  isCoinLocked: (id: string) => boolean;
+  isMonsterCaptured: (id: string) => boolean;
 }
 
-export default function OverlayLayer({ visibleObjects, heading, position }: OverlayLayerProps) {
-  const { isCoinLocked, isMonsterCaptured } = useArInteractions();
-
+export function OverlayLayer({
+  spawns,
+  position,
+  heading,
+  isCoinLocked,
+  isMonsterCaptured,
+}: OverlayLayerProps) {
   return (
-    <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 30 }}>
-      {visibleObjects.map((obj) => {
-        // Calculate bearing from player to object
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {spawns.map((spawn) => {
         const bearing = calculateBearing(
           position.latitude,
           position.longitude,
-          obj.latitude,
-          obj.longitude
+          spawn.latitude,
+          spawn.longitude
+        );
+        const { x, y, visible } = projectToScreen(bearing, heading);
+
+        if (!visible) return null;
+
+        const dist = calculateDistance(
+          position.latitude,
+          position.longitude,
+          spawn.latitude,
+          spawn.longitude
         );
 
-        // Project to screen using existing arMath signature: (bearing, userHeading)
-        const pos = projectToScreen(bearing, heading);
+        const isCoin = spawn.spawnType === 'coin';
+        const isMonster = spawn.spawnType === 'monster';
+        const locked = isCoin && isCoinLocked(spawn.id);
+        const captured = isMonster && isMonsterCaptured(spawn.id);
 
-        if (!pos.visible) return null;
+        // Determine sprite type
+        let spriteType: string;
+        if (isCoin) {
+          spriteType = locked ? 'coin-locked' : 'coin-unlocked';
+        } else if (isMonster) {
+          const attrs = spawn.attributes || '';
+          if (attrs.includes('level:5') || attrs.includes('legendary')) {
+            spriteType = 'monster-legendary';
+          } else if (attrs.includes('level:3') || attrs.includes('rare')) {
+            spriteType = 'monster-rare';
+          } else {
+            spriteType = 'monster-common';
+          }
+        } else {
+          spriteType = 'coin-unlocked';
+        }
 
-        // pos.x is 0..1, convert to percentage
-        const xPercent = pos.x * 100;
-
-        const isMonsterType =
-          obj.type === 'monster-common' ||
-          obj.type === 'monster-rare' ||
-          obj.type === 'monster-legendary';
-
-        const locked = !isMonsterType && isCoinLocked(obj.id);
-        const captured = isMonsterType && isMonsterCaptured(obj.id);
-
-        const sprite = getSpriteForObject(obj);
+        const sprite = getSpriteForType(spriteType);
+        const size = Math.max(40, 80 - dist / 3);
 
         return (
           <div
-            key={obj.id}
-            className="absolute flex flex-col items-center"
-            style={{
-              left: `${xPercent}%`,
-              top: '40%',
-              transform: 'translate(-50%, -50%)',
-            }}
+            key={spawn.id}
+            className="absolute transform -translate-x-1/2 -translate-y-1/2"
+            style={{ left: `${x}%`, top: `${y}%` }}
           >
-            <div
-              className="relative"
-              style={{
-                filter: locked
-                  ? 'drop-shadow(0 0 8px #FFD700) brightness(1.3)'
-                  : captured
-                  ? 'drop-shadow(0 0 8px #B400FF) brightness(0.6) grayscale(0.5)'
-                  : 'drop-shadow(0 0 6px rgba(255,215,0,0.6))',
-                opacity: captured ? 0.5 : 1,
-              }}
-            >
+            <div className="flex flex-col items-center gap-1">
               <img
                 src={sprite}
-                alt={obj.type}
-                className="w-16 h-16 object-contain"
-                draggable={false}
+                alt={spawn.itemType}
+                style={{ width: size, height: size }}
+                className={`object-contain drop-shadow-lg ${
+                  captured ? 'opacity-40 grayscale' : ''
+                } ${locked ? 'opacity-80' : ''}`}
               />
-              {locked && (
-                <div
-                  className="absolute -top-2 -right-2 text-xs font-bold px-1 rounded"
-                  style={{ background: '#FFD700', color: '#000' }}
-                >
-                  🔒
+              <div className="bg-black/60 rounded-full px-2 py-0.5 text-center">
+                <div className="text-xs font-bold text-white leading-tight">
+                  {spawn.itemType.replace('Quantumon_', '').replace('QMY_', 'QMY ')}
                 </div>
-              )}
-              {captured && (
-                <div
-                  className="absolute -top-2 -right-2 text-xs font-bold px-1 rounded"
-                  style={{ background: '#B400FF', color: '#fff' }}
-                >
-                  ✓
-                </div>
-              )}
+                <div className="text-xs text-gold/80">{Math.round(dist)}m</div>
+                {locked && <div className="text-xs text-yellow-400">🔒</div>}
+                {captured && <div className="text-xs text-green-400">✓</div>}
+              </div>
             </div>
-            <span
-              className="text-xs font-bold mt-1 px-2 py-0.5 rounded"
-              style={{
-                background: 'rgba(0,0,0,0.6)',
-                color: locked ? '#FFD700' : captured ? '#E0A0FF' : '#fff',
-                border: `1px solid ${locked ? '#FFD700' : captured ? '#B400FF' : 'rgba(255,255,255,0.3)'}`,
-              }}
-            >
-              {isMonsterType ? obj.name : locked ? 'Locked' : 'QMY'}
-            </span>
           </div>
         );
       })}
