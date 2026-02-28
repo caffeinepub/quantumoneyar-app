@@ -1,218 +1,103 @@
 {
   "kind": "build_request",
-  "title": "Full AR Game Rebuild: Real Canister Sync, Playable AR, Correct HUD Coins",
-  "projectName": "QuantumoneyAR",
+  "title": "Fix Profile UI bugs: Coins Captured count, XP bar visual, and canister ID links",
+  "projectName": "QuantumMoney AR",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-28",
-      "text": "Rebuild the backend actor (backend/main.mo) to expose all endpoints required by QuantumoneyAR.app: getPlayerState (XP, lockedQMY, unlockedQMY, capturedMonsters, lockedCoins), claimWelcomeBonus (1000 QMY: 100 unlocked + 900 locked in 9×100 QMY monthly vesting + 100 XP, idempotent per Principal), lockCoin (spawnId → awards +10 XP), unlockCoin (spawnId → deducts -15 XP), captureMonster (spawnId → awards +20 XP), getSpawnList (returns canonical list of coin and monster spawns with IDs, coordinates, type, and attributes), getUserProfile (displayName, photoBlob), setDisplayName, setProfilePhoto, and getVestingSchedule. All mutations must be authenticated via the caller Principal. The Carteira A canisters are: Logic ckmsk-taaaa-aaaah-atfca-cai, Ledger 5o54h-giaaa-aaaad-aentq-cai, Governance nemlr-6aaaa-aaaan-q32la-cai, Gold Paper whu4t-kiaaa-aaaah-qsc5q-cai, Frontend crjop-jyaaa-aaaah-atfaq-cai. Controller Principal: xruv6-6qf3w-d7qu3-tjyif-dhee6-ownvo-gwhmj-bsoxs-g5sp3-vszel-zqe.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Esta aplicação PWA quantumoneyar.app não está sincronizada com o site Quantumoney.app",
-          "Faz tudo novamente porque o que fizeste não resolveu nada e o jogo continua sem estar jogável"
-        ]
-      },
-      "acceptanceCriteria": [
-        "getPlayerState returns XP, lockedQMY, unlockedQMY, capturedMonsters array, and lockedCoins array for the calling Principal",
-        "claimWelcomeBonus is idempotent — calling it twice for the same Principal has no effect after the first call",
-        "lockCoin adds the spawnId to lockedCoins and increments XP by 10",
-        "unlockCoin removes the spawnId from lockedCoins and decrements XP by 15",
-        "captureMonster adds the spawnId to capturedMonsters and increments XP by 20",
-        "getSpawnList returns a non-empty list with at least id, lat, lng, type fields per spawn",
-        "All mutations reject unauthenticated (anonymous) callers",
-        "welcome bonus includes 100 XP, 100 unlocked QMY, and 9 monthly vesting entries of 100 QMY each"
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "text": "Rebuild GameStateContext (frontend/src/contexts/GameStateContext.tsx) to fetch all player data exclusively from the backend canister via the authenticated actor. On mount (and on window focus), call getPlayerState and getVestingSchedule. Expose xp, lockedQMY, unlockedQMY, capturedMonsters, lockedCoins, vestingSchedule, and refetch. Remove all localStorage-only derivations for these values. The context must also expose a triggerWelcomeBonus function that calls claimWelcomeBonus on the canister and refetches state.",
+      "id": "REQ-1",
+      "text": "In the Profile page (frontend/src/components/sections/Profile.tsx), fix the 'Coins Captured' stat display so it shows the real value by using `userStats.coins || walletBalance` instead of defaulting to 0. When the canister balance is 1000 QMY, the field must display '1000 QMY' (not '0 Moedas Capturadas').",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-latest"
         ],
         "quotes": [
-          "Eu quero esta aplicação com o mesmo perfil, com o mesmo mapa, com todos os mesmos dados que estão no site Quantumoney.app"
+          "\"0 Moedas Capturadas\" ← ERRO (1000 QMY real)",
+          "Moedas Capturadas: ${userStats.coins || walletBalance}"
         ]
       },
       "acceptanceCriteria": [
-        "After login, GameStateContext fetches XP and balances from canister within 3 seconds",
-        "Data in GameStateContext matches what the same Principal sees on Quantumoney.app",
-        "No XP or balance value is derived from localStorage alone",
-        "refetch() re-queries the canister and updates all values",
-        "triggerWelcomeBonus calls the canister and does not grant the bonus twice"
+        "Profile page shows '1000 QMY' (or the real canister balance) under 'Coins Captured' / 'Moedas Capturadas'",
+        "Value never falls back to '0' when a real wallet balance is available",
+        "Fallback chain: canister coins → walletBalance → 0"
       ]
     },
     {
-      "id": "REQ-30",
-      "text": "Rebuild useArActions.ts (frontend/src/hooks/useArActions.ts) so that useLockCoin, useUnlockCoin, and useCaptureMonster are React Query mutations that call the real backend actor endpoints lockCoin, unlockCoin, and captureMonster respectively, passing the spawnId. On success, each mutation must invalidate the playerState query so GameStateContext refreshes from the canister, and must update arInteractionsStore and mockGameplayState (as fallback cache). Remove any stub or simulation logic.",
+      "id": "REQ-2",
+      "text": "Fix the XP progress bar in the Profile page so it renders the correct visual fill. When XP is 100 out of 900 (next level threshold), the bar must be visually filled to approximately 11% (100/900). The bar must never appear empty when XP > 0.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-latest"
         ],
         "quotes": [
-          "o jogo continua sem estar jogável"
+          "XP 100/900 mas barra zerada"
         ]
       },
       "acceptanceCriteria": [
-        "useLockCoin mutation calls actor.lockCoin(spawnId) with the authenticated actor",
-        "useLockCoin on success triggers a re-fetch of player state and XP increments by 10",
-        "useUnlockCoin mutation calls actor.unlockCoin(spawnId) and XP decrements by 15 on success",
-        "useCaptureMonster mutation calls actor.captureMonster(spawnId) and XP increments by 20 on success",
-        "All three mutations show isPending=true during the async call",
-        "arInteractionsStore is updated on success for each mutation"
+        "XP bar width is computed as Math.min((currentXP / nextLevelXP) * 100, 100) percent",
+        "With XP=100 and next threshold=900, bar is visually ~11% filled",
+        "Bar is never 0% wide when currentXP > 0"
       ]
     },
     {
-      "id": "REQ-31",
-      "text": "Rebuild CameraARActionBar (frontend/src/components/sections/CameraAR/CameraARActionBar.tsx) to be fully playable: (1) Show a 'Lock QMY' button when the nearest visible AR object is a coin and it is not yet locked — on click, call useLockCoin with that spawn's ID and show a loading spinner during the mutation. (2) Show an 'Unlock QMY' button when the nearest visible coin is locked — on click, call useUnlockCoin with that spawn's ID and show a loading spinner. (3) Show a 'Rescue Monster' button when the nearest visible AR object is a monster and it is not yet captured — on click, call useCaptureMonster, then display SpawnCollectFX, and add a 'creature-capture' event via useGameplayHistory. (4) Show an XP change toast (+10, -15, or +20) after each successful mutation. Lock and Unlock actions must only be available on the AR page.",
+      "id": "REQ-3",
+      "text": "Fix the canister ID links in the Profile page so they display the full canister ID without truncation, and link to the correct ICScan URLs. Each canister entry must be a full clickable anchor opening in a new tab. The five Carteira A canisters to display are: Frontend (crjop-jyaaa-aaaah-atfaq-cai), Ledger QMY (5o54h-giaaa-aaaad-aentq-cai), Logic (ckmsk-taaaa-aaaah-atfca-cai), Docs (whu4t-kiaaa-aaaah-qsc5q-cai), Governance (nemlr-6aaaa-aaaan-q32la-cai). Each link must point to https://icscan.io/canister/<canister-id> and open target='_blank'.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-latest"
         ],
         "quotes": [
-          "eu quero fazer da aplicação um jogo AR onde só na aplicação página AR é que é possível bloquear e desbloquear criptomoedas QMY",
-          "o jogo continua sem estar jogável"
+          "Canister IDs cortados",
+          "<a href=\"https://icscan.io/canister/crjob-jyaaa-aaaah-atfaq-cai\" target=\"_blank\">Frontend: crjop-jyaaa-aaaah-atfaq-cai</a>"
         ]
       },
       "acceptanceCriteria": [
-        "Lock QMY button is visible and clickable only for unlocked coin spawns in AR view",
-        "Unlock QMY button is visible and clickable only for already-locked coin spawns in AR view",
-        "Rescue Monster button is visible and clickable only for uncaptured monster spawns in AR view",
-        "All three buttons show a spinner while the canister mutation is pending",
-        "SpawnCollectFX overlay appears after successful monster capture",
-        "XP delta toast is displayed after each successful action",
-        "Lock/Unlock buttons do not appear anywhere outside the AR camera page"
+        "All five canister IDs are displayed in full without ellipsis or truncation",
+        "Each canister ID is wrapped in an anchor tag with href='https://icscan.io/canister/<id>' and target='_blank'",
+        "Canister labels (Frontend, Ledger QMY, Logic, Docs, Governance) are shown alongside each ID",
+        "Links are styled to be readable on dark background (gold or light accent color)"
       ]
     },
     {
-      "id": "REQ-32",
-      "text": "Rebuild the spawn data layer: fetch the canonical spawn list from the canister via getSpawnList on app load (via a React Query hook useSpawnList). Store the result in a context or module-level cache accessible to the AR overlay, Leaflet map, and action bar. The mockSpawns.ts list in frontend/src/lib/mockSpawns.ts must be used only as a fallback when the canister call fails, and must be clearly labeled with a comment '// FALLBACK ONLY — used when canister is unreachable'. Real canister spawn data must always take precedence.",
+      "id": "REQ-4",
+      "text": "Ensure the Game Stats section in the Profile page displays the following fields with correct values: 'Coins Captured' (from canister or walletBalance), 'Total QMY' (1000 QMY from ledger), 'Monsters' (showing captured count out of 50, e.g. '0/50'). These must all be visible and correctly populated in the HCoragem profile view.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-latest"
         ],
         "quotes": [
-          "com todos os mesmos dados que estão no site Quantumoney.app"
+          "Total QMY: 1000 QMY",
+          "Monstros: 0/50"
         ]
       },
       "acceptanceCriteria": [
-        "useSpawnList hook calls actor.getSpawnList() when authenticated actor is available",
-        "AR overlay and Leaflet map use canister spawn data when available",
-        "mockSpawns.ts is only used when the canister call returns an error",
-        "mockSpawns.ts file contains a visible comment marking it as fallback-only",
-        "Spawns loaded from the canister include the same IDs as on Quantumoney.app"
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "text": "Rebuild the HUD page (frontend/src/components/sections/HUD.tsx): remove all floating/drifting animated coin graphics. Replace them with static realistic QMY coin images displayed as decorative elements (e.g., a row or cluster of 3D-style golden QMY coin images). The animated space background (stars, planets, comets) from HomeSpaceBackground must remain active. Display the player's real XP, locked QMY, and unlocked QMY from GameStateContext. Show a 'Go to Quantumoney.app' button that opens https://quantumoney.app in a new tab. On first login, automatically trigger claimWelcomeBonus and show the WelcomeBonusModal.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Não quero essas coins a flutuar pela página HOME, quero sim coins QMY em forma real de moeda"
-        ]
-      },
-      "acceptanceCriteria": [
-        "No floating/drifting coin animation elements are rendered on the HUD page",
-        "At least one realistic static QMY coin image is displayed on the HUD",
-        "Stars, planets, and comets background animation is still active",
-        "XP, locked QMY, and unlocked QMY values shown on HUD come from GameStateContext (canister-backed)",
-        "'Go to Quantumoney.app' button opens https://quantumoney.app in a new tab",
-        "WelcomeBonusModal appears on first login and is not shown again after dismissal"
-      ]
-    },
-    {
-      "id": "REQ-34",
-      "text": "Rebuild the Profile page (frontend/src/components/sections/Profile.tsx) to read all data exclusively from the canister: displayName via getUserProfile, XP, lockedQMY, unlockedQMY, capturedMonsters count, and vestingSchedule from GameStateContext. The display name must be editable inline and saved via setDisplayName canister call. Profile photo upload must call setProfilePhoto on the canister and display the stored photo; fall back to a default avatar if none set. Remove all localStorage-only derivations for these values.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "Eu quero esta aplicação com o mesmo perfil"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Profile page shows XP value matching getPlayerState canister response",
-        "Locked and unlocked QMY balances on Profile page match canister data",
-        "Display name is loaded from getUserProfile and editable inline with save persisted to canister",
-        "Profile photo is uploaded to and loaded from the canister blob storage",
-        "Vesting schedule displayed on Profile page matches getVestingSchedule canister response",
-        "No profile value is derived from localStorage alone"
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "text": "Rebuild the Leaflet map integration so that spawn markers in both /public/map/map.js and the MapMundoLeaflet React component (frontend/src/components/sections/MapMundoLeaflet.tsx) reflect the real-time lock and capture states from the canister (via arInteractionsStore which is synced from canister PlayerState). Coins that are locked must display a locked visual marker; monsters that are captured must display a captured visual marker. The map must receive updated state via postMessage whenever arInteractionsStore changes.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "com o mesmo mapa, com todos os mesmos dados que estão no site Quantumoney.app"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Locked coins appear with a locked icon on the Leaflet map",
-        "Captured monsters appear with a captured icon on the Leaflet map",
-        "Map state updates within 5 seconds of a lock/unlock/capture action in AR",
-        "map.js reads arInteractionsStore from localStorage to render correct marker states",
-        "MapMundoLeaflet sends postMessage with updated state on localStorage change"
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Generate a realistic 3D-style golden QMY coin image to be used as a static decorative asset on the HUD page. The coin should have a metallic gold surface with 'QMY' text engraved on the face, a ridged edge, and subtle light reflections to look like a physical cryptocurrency coin.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "quero sim coins QMY em forma real de moeda"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A QMY coin image asset is present in frontend/public/assets/generated/",
-        "The coin image is rendered on the HUD page as a static decorative element",
-        "The coin has a gold metallic appearance with 'QMY' visible on its face"
+        "Game Stats section shows 'Coins Captured', 'Total QMY', and 'Monsters' fields",
+        "'Total QMY' reflects the QMY Ledger balance (5o54h-giaaa-aaaad-aentq-cai)",
+        "'Monsters' shows captured/total format (e.g. '0/50')",
+        "Section is visible without requiring scroll when on desktop and is accessible on mobile"
       ]
     }
   ],
   "constraints": [
-    "All canister IDs must remain: Logic ckmsk-taaaa-aaaah-atfca-cai, Ledger 5o54h-giaaa-aaaad-aentq-cai, Governance nemlr-6aaaa-aaaan-q32la-cai, Gold Paper whu4t-kiaaa-aaaah-qsc5q-cai, Frontend crjop-jyaaa-aaaah-atfaq-cai",
-    "Controller/owner Principal is xruv6-6qf3w-d7qu3-tjyif-dhee6-ownvo-gwhmj-bsoxs-g5sp3-vszel-zqe",
-    "Lock and Unlock QMY actions must be available exclusively on the AR camera page — do not expose them on any other page",
-    "Do not edit files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui/",
-    "mockSpawns.ts must remain but be used only as a canister-unreachable fallback",
-    "The welcome bonus (1000 QMY + 100 XP) must never be granted more than once per Principal"
+    "Preserve existing Internet Identity (ICP) login flow — do not alter authentication logic",
+    "Preserve QMY Ledger sync with canister 5o54h-giaaa-aaaad-aentq-cai",
+    "Preserve Carteira A controller architecture — do not change canister IDs",
+    "Do not modify files in frontend/src/hooks/useInternetIdentity.ts, useActor.ts, or frontend/src/main.tsx",
+    "Do not modify files under frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Do not add WebSocket or real-time push — polling on focus is sufficient",
-    "Do not create separate Wallet or Profile sub-pages",
-    "Do not integrate any third-party payment or swap service",
-    "Do not add floating/drifting coin animations to the HOME page",
-    "Do not add lock/unlock UI to any page other than the AR camera view",
-    "Do not add Caffeine branding anywhere in the app"
+    "Adding new backend canister logic or changing backend data models",
+    "Changing authentication flow or Internet Identity integration",
+    "Modifying AR camera or map components",
+    "Fixing Terms modal (handled in a previous build)",
+    "Cross-domain synchronization changes beyond what is already implemented"
   ],
   "imageRequirements": {
-    "required": [
-      "Realistic 3D-style metallic gold cryptocurrency coin with 'QMY' engraved on the face, ridged edge, and subtle specular light reflections on a transparent background (qmy-coin-3d.dim_256x256.png)"
-    ],
+    "required": [],
     "edits": []
   }
 }

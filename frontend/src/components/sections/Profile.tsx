@@ -6,14 +6,23 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from '../../hooks/useActor';
 import { ExternalBlob } from '../../backend';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
-import { User, Star, Lock, Unlock, Zap, Camera, Edit2, Check, X } from 'lucide-react';
+import { User, Star, Lock, Unlock, Zap, Camera, Edit2, Check, X, ExternalLink, Coins } from 'lucide-react';
 import { toast } from 'sonner';
+import { calculateLevel, getXpProgress, getRankFromXp } from '../../gameplay/progression/leveling';
+
+const CANISTER_IDS = [
+  { label: 'Frontend', id: 'crjop-jyaaa-aaaah-atfaq-cai' },
+  { label: 'Ledger QMY', id: '5o54h-giaaa-aaaad-aentq-cai' },
+  { label: 'Logic', id: 'ckmsk-taaaa-aaaah-atfca-cai' },
+  { label: 'Docs', id: 'whu4t-kiaaa-aaaah-qsc5q-cai' },
+  { label: 'Governance', id: 'nemlr-6aaaa-aaaan-q32la-cai' },
+];
 
 export default function Profile() {
   const { identity } = useInternetIdentity();
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const { xp, lockedQMY, unlockedQMY, capturedMonsters, lockedCoins, vestingSchedule, isLoading } = useGameState();
+  const { xp, lockedQMY, unlockedQMY, capturedMonsters, lockedCoins, vestingSchedule, bonus, isLoading } = useGameState();
   const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
 
   const [editingName, setEditingName] = useState(false);
@@ -69,7 +78,18 @@ export default function Profile() {
   };
 
   const photoUrl = userProfile?.photoUrl ? userProfile.photoUrl.getDirectURL() : null;
-  const level = Math.floor(xp / 100) + 1;
+
+  // XP calculations
+  const levelInfo = calculateLevel(xp);
+  const xpProgressPct = Math.min(getXpProgress(xp), 100);
+  const xpInLevel = xp - levelInfo.xpRequired;
+  const xpNeededInLevel = levelInfo.xpForNext - levelInfo.xpRequired;
+  const rank = getRankFromXp(xp);
+
+  // Wallet balance: total QMY from bonus (1000 QMY) or from playerState
+  const totalQMY = lockedQMY + unlockedQMY;
+  // Coins captured: use lockedCoins count, fallback to total QMY balance if no coins locked yet
+  const coinsCapturado = lockedCoins.length > 0 ? lockedCoins.length : (totalQMY > 0 ? Math.round(totalQMY) : 0);
 
   if (!identity) {
     return (
@@ -114,7 +134,7 @@ export default function Profile() {
           </div>
 
           {/* Name & level */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             {editingName ? (
               <div className="flex items-center gap-2">
                 <input
@@ -146,10 +166,33 @@ export default function Profile() {
                 </button>
               </div>
             )}
-            <div className="text-gold/60 text-xs">Level {level} Explorer</div>
-            <div className="text-white/30 text-xs font-mono mt-1">
+            <div className="text-gold/60 text-xs">Level {levelInfo.level} {rank}</div>
+            <div className="text-white/30 text-xs font-mono mt-1 truncate">
               {principal.slice(0, 20)}...
             </div>
+          </div>
+        </div>
+
+        {/* XP Progress Bar */}
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-xs text-white/50 flex items-center gap-1">
+              <Zap className="w-3 h-3 text-gold" />
+              XP Progress
+            </span>
+            <span className="text-xs text-gold font-mono">
+              {xpInLevel} / {xpNeededInLevel} XP
+            </span>
+          </div>
+          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-gold/80 to-gold rounded-full transition-all duration-500"
+              style={{ width: `${xpProgressPct}%` }}
+            />
+          </div>
+          <div className="flex justify-between mt-1">
+            <span className="text-xs text-white/30">Lv {levelInfo.level}</span>
+            <span className="text-xs text-white/30">Lv {levelInfo.level + 1}</span>
           </div>
         </div>
 
@@ -214,37 +257,72 @@ export default function Profile() {
 
         <TabsContent value="overview">
           <div className="space-y-3">
+            {/* Game Stats */}
             <div className="bg-white/5 rounded-xl p-4 border border-gold/20">
-              <h3 className="text-gold font-semibold text-sm mb-3">Game Stats</h3>
+              <h3 className="text-gold font-semibold text-sm mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                Game Stats
+              </h3>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Monsters Captured</span>
-                  <span className="text-white font-semibold">{capturedMonsters.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white/60">Coins Locked</span>
-                  <span className="text-white font-semibold">{lockedCoins.length}</span>
+                  <span className="text-white/60">Moedas Capturadas</span>
+                  {isLoading ? (
+                    <div className="h-4 w-16 bg-gold/20 rounded animate-pulse" />
+                  ) : (
+                    <span className="text-gold font-semibold">
+                      {coinsCapturado > 0 ? `${coinsCapturado} QMY` : '0'}
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white/60">Total QMY</span>
-                  <span className="text-gold font-semibold">{(lockedQMY + unlockedQMY).toFixed(0)}</span>
+                  {isLoading ? (
+                    <div className="h-4 w-20 bg-gold/20 rounded animate-pulse" />
+                  ) : (
+                    <span className="text-gold font-semibold">
+                      {totalQMY > 0 ? `${totalQMY.toFixed(0)} QMY` : bonus ? `${Number(bonus.totqmy)} QMY` : '0 QMY'}
+                    </span>
+                  )}
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-white/60">Monsters</span>
+                  {isLoading ? (
+                    <div className="h-4 w-12 bg-white/10 rounded animate-pulse" />
+                  ) : (
+                    <span className="text-white font-semibold">{capturedMonsters.length}/50</span>
+                  )}
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-white/60">Coins Locked</span>
+                  {isLoading ? (
+                    <div className="h-4 w-12 bg-white/10 rounded animate-pulse" />
+                  ) : (
+                    <span className="text-white font-semibold">{lockedCoins.length}</span>
+                  )}
                 </div>
               </div>
             </div>
 
+            {/* Canister IDs — Carteira A */}
             <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <h3 className="text-white/60 font-semibold text-sm mb-3">Canister IDs</h3>
-              <div className="space-y-2">
-                {[
-                  { label: 'Logic', id: 'ckmsk-taaaa-aaaah-atfca-cai' },
-                  { label: 'QMY Ledger', id: '5o54h-giaaa-aaaad-aentq-cai' },
-                  { label: 'Governance', id: 'nemlr-6aaaa-aaaan-q32la-cai' },
-                  { label: 'Gold Paper', id: 'whu4t-kiaaa-aaaah-qsc5q-cai' },
-                  { label: 'Frontend', id: 'crjop-jyaaa-aaaah-atfaq-cai' },
-                ].map(({ label, id }) => (
-                  <div key={id} className="flex items-center justify-between">
-                    <span className="text-xs text-white/50">{label}</span>
-                    <span className="text-xs text-gold/60 font-mono">{id}</span>
+              <h3 className="text-white/70 font-semibold text-sm mb-3">
+                Carteira A — Canister IDs
+              </h3>
+              <div className="space-y-3">
+                {CANISTER_IDS.map(({ label, id }) => (
+                  <div key={id} className="flex flex-col gap-0.5">
+                    <span className="text-xs text-white/40 uppercase tracking-wide">{label}</span>
+                    <a
+                      href={`https://icscan.io/canister/${id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 group"
+                    >
+                      <span className="text-xs text-amber-400 font-mono break-all group-hover:text-amber-300 transition-colors">
+                        {id}
+                      </span>
+                      <ExternalLink className="w-3 h-3 text-amber-400/60 flex-shrink-0 group-hover:text-amber-300 transition-colors" />
+                    </a>
                   </div>
                 ))}
               </div>

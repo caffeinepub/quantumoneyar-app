@@ -2,126 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-rebuild-gamestatecontext-frontend-src-contexts-gamestatecontext-tsx-to-fetch-all-player-data-exclusively-from-the-backend-canister-via-the-authenticated-actor-on-mount-and-on-window-focus-call-getplayerstate-and-getvestingschedule-expose-xp-lockedqmy-unlockedqmy-capturedmonsters-lockedcoins-vestingschedule-and-refetch-remove-all-localstorage-only-derivations-for-these-values-the-context-must-also-expose-a-triggerwelcomebonus-function-that-calls-claimwelcomebonus-on-the-canister-and-refetches-state",
-      "featureTitle": "Rebuild GameStateContext (frontend/src/contexts/GameStateContext.tsx) to fetch all player data exclusively from the backend canister via the authenticated actor. On mount (and on window focus), call getPlayerState and getVestingSchedule. Expose xp, lockedQMY, unlockedQMY, capturedMonsters, lockedCoins, vestingSchedule, and refetch. Remove all localStorage-only derivations for these values. The context must also expose a triggerWelcomeBonus function that calls claimWelcomeBonus on the canister and refetches state.",
-      "files": [
-        "frontend/src/contexts/GameStateContext.tsx"
-      ],
-      "components": [
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-29"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-rebuild-usearactions-ts-frontend-src-hooks-usearactions-ts-so-that-uselockcoin-useunlockcoin-and-usecapturemonster-are-react-query-mutations-that-call-the-real-backend-actor-endpoints-lockcoin-unlockcoin-and-capturemonster-respectively-passing-the-spawnid-on-success-each-mutation-must-invalidate-the-playerstate-query-so-gamestatecontext-refreshes-from-the-canister-and-must-update-arinteractionsstore-and-mockgameplaystate-as-fallback-cache-remove-any-stub-or-simulation-logic",
-      "featureTitle": "Rebuild useArActions.ts (frontend/src/hooks/useArActions.ts) so that useLockCoin, useUnlockCoin, and useCaptureMonster are React Query mutations that call the real backend actor endpoints lockCoin, unlockCoin, and captureMonster respectively, passing the spawnId. On success, each mutation must invalidate the playerState query so GameStateContext refreshes from the canister, and must update arInteractionsStore and mockGameplayState (as fallback cache). Remove any stub or simulation logic.",
-      "files": [
-        "frontend/src/hooks/useArActions.ts"
-      ],
-      "components": [
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-30"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-rebuild-cameraaractionbar-frontend-src-components-sections-cameraar-cameraaractionbar-tsx-to-be-fully-playable-1-show-a-lock-qmy-button-when-the-nearest-visible-ar-object-is-a-coin-and-it-is-not-yet-locked-on-click-call-uselockcoin-with-that-spawn-s-id-and-show-a-loading-spinner-during-the-mutation-2-show-an-unlock-qmy-button-when-the-nearest-visible-coin-is-locked-on-click-call-useunlockcoin-with-that-spawn-s-id-and-show-a-loading-spinner-3-show-a-rescue-monster-button-when-the-nearest-visible-ar-object-is-a-monster-and-it-is-not-yet-captured-on-click-call-usecapturemonster-then-display-spawncollectfx-and-add-a-creature-capture-event-via-usegameplayhistory-4-show-an-xp-change-toast-10-15-or-20-after-each-successful-mutation-lock-and-unlock-actions-must-only-be-available-on-the-ar-page",
-      "featureTitle": "Rebuild CameraARActionBar (frontend/src/components/sections/CameraAR/CameraARActionBar.tsx) to be fully playable: (1) Show a 'Lock QMY' button when the nearest visible AR object is a coin and it is not yet locked — on click, call useLockCoin with that spawn's ID and show a loading spinner during the mutation. (2) Show an 'Unlock QMY' button when the nearest visible coin is locked — on click, call useUnlockCoin with that spawn's ID and show a loading spinner. (3) Show a 'Rescue Monster' button when the nearest visible AR object is a monster and it is not yet captured — on click, call useCaptureMonster, then display SpawnCollectFX, and add a 'creature-capture' event via useGameplayHistory. (4) Show an XP change toast (+10, -15, or +20) after each successful mutation. Lock and Unlock actions must only be available on the AR page.",
-      "files": [
-        "frontend/src/components/sections/CameraAR/CameraARActionBar.tsx"
-      ],
-      "components": [
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-31"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-rebuild-the-spawn-data-layer-fetch-the-canonical-spawn-list-from-the-canister-via-getspawnlist-on-app-load-via-a-react-query-hook-usespawnlist-store-the-result-in-a-context-or-module-level-cache-accessible-to-the-ar-overlay-leaflet-map-and-action-bar-the-mockspawns-ts-list-in-frontend-src-lib-mockspawns-ts-must-be-used-only-as-a-fallback-when-the-canister-call-fails-and-must-be-clearly-labeled-with-a-comment-fallback-only-used-when-canister-is-unreachable-real-canister-spawn-data-must-always-take-precedence",
-      "featureTitle": "Rebuild the spawn data layer: fetch the canonical spawn list from the canister via getSpawnList on app load (via a React Query hook useSpawnList). Store the result in a context or module-level cache accessible to the AR overlay, Leaflet map, and action bar. The mockSpawns.ts list in frontend/src/lib/mockSpawns.ts must be used only as a fallback when the canister call fails, and must be clearly labeled with a comment '// FALLBACK ONLY — used when canister is unreachable'. Real canister spawn data must always take precedence.",
-      "files": [
-        "frontend/src/components/sections/CameraAR/CameraARPage.tsx",
-        "frontend/src/components/sections/MapMundoLeaflet.tsx",
-        "frontend/src/hooks/useSpawnList.ts",
-        "frontend/src/lib/mockSpawns.ts"
-      ],
-      "components": [
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-32"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-rebuild-the-hud-page-frontend-src-components-sections-hud-tsx-remove-all-floating-drifting-animated-coin-graphics-replace-them-with-static-realistic-qmy-coin-images-displayed-as-decorative-elements-e-g-a-row-or-cluster-of-3d-style-golden-qmy-coin-images-the-animated-space-background-stars-planets-comets-from-homespacebackground-must-remain-active-display-the-player-s-real-xp-locked-qmy-and-unlocked-qmy-from-gamestatecontext-show-a-go-to-quantumoney-app-button-that-opens-https-quantumoney-app-in-a-new-tab-on-first-login-automatically-trigger-claimwelcomebonus-and-show-the-welcomebonusmodal",
-      "featureTitle": "Rebuild the HUD page (frontend/src/components/sections/HUD.tsx): remove all floating/drifting animated coin graphics. Replace them with static realistic QMY coin images displayed as decorative elements (e.g., a row or cluster of 3D-style golden QMY coin images). The animated space background (stars, planets, comets) from HomeSpaceBackground must remain active. Display the player's real XP, locked QMY, and unlocked QMY from GameStateContext. Show a 'Go to Quantumoney.app' button that opens https://quantumoney.app in a new tab. On first login, automatically trigger claimWelcomeBonus and show the WelcomeBonusModal.",
-      "files": [
-        "frontend/src/components/sections/HUD.tsx"
-      ],
-      "components": [
-        "blob-storage@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "authorization@4.0.0",
-        "qr-code@1.0.0",
-        "camera@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-33"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-rebuild-the-profile-page-frontend-src-components-sections-profile-tsx-to-read-all-data-exclusively-from-the-canister-displayname-via-getuserprofile-xp-lockedqmy-unlockedqmy-capturedmonsters-count-and-vestingschedule-from-gamestatecontext-the-display-name-must-be-editable-inline-and-saved-via-setdisplayname-canister-call-profile-photo-upload-must-call-setprofilephoto-on-the-canister-and-display-the-stored-photo-fall-back-to-a-default-avatar-if-none-set-remove-all-localstorage-only-derivations-for-these-values",
-      "featureTitle": "Rebuild the Profile page (frontend/src/components/sections/Profile.tsx) to read all data exclusively from the canister: displayName via getUserProfile, XP, lockedQMY, unlockedQMY, capturedMonsters count, and vestingSchedule from GameStateContext. The display name must be editable inline and saved via setDisplayName canister call. Profile photo upload must call setProfilePhoto on the canister and display the stored photo; fall back to a default avatar if none set. Remove all localStorage-only derivations for these values.",
+      "featureId": "feature-in-the-profile-page-frontend-src-components-sections-profile-tsx-fix-the-coins-captured-stat-display-so-it-shows-the-real-value-by-using-userstats-coins-walletbalance-instead-of-defaulting-to-0-when-the-canister-balance-is-1000-qmy-the-field-must-display-1000-qmy-not-0-moedas-capturadas",
+      "featureTitle": "In the Profile page (frontend/src/components/sections/Profile.tsx), fix the 'Coins Captured' stat display so it shows the real value by using `userStats.coins || walletBalance` instead of defaulting to 0. When the canister balance is 1000 QMY, the field must display '1000 QMY' (not '0 Moedas Capturadas').",
       "files": [
         "frontend/src/components/sections/Profile.tsx"
       ],
@@ -138,16 +20,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-34"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-rebuild-the-leaflet-map-integration-so-that-spawn-markers-in-both-public-map-map-js-and-the-mapmundoleaflet-react-component-frontend-src-components-sections-mapmundoleaflet-tsx-reflect-the-real-time-lock-and-capture-states-from-the-canister-via-arinteractionsstore-which-is-synced-from-canister-playerstate-coins-that-are-locked-must-display-a-locked-visual-marker-monsters-that-are-captured-must-display-a-captured-visual-marker-the-map-must-receive-updated-state-via-postmessage-whenever-arinteractionsstore-changes",
-      "featureTitle": "Rebuild the Leaflet map integration so that spawn markers in both /public/map/map.js and the MapMundoLeaflet React component (frontend/src/components/sections/MapMundoLeaflet.tsx) reflect the real-time lock and capture states from the canister (via arInteractionsStore which is synced from canister PlayerState). Coins that are locked must display a locked visual marker; monsters that are captured must display a captured visual marker. The map must receive updated state via postMessage whenever arInteractionsStore changes.",
+      "featureId": "feature-fix-the-xp-progress-bar-in-the-profile-page-so-it-renders-the-correct-visual-fill-when-xp-is-100-out-of-900-next-level-threshold-the-bar-must-be-visually-filled-to-approximately-11-100-900-the-bar-must-never-appear-empty-when-xp-0",
+      "featureTitle": "Fix the XP progress bar in the Profile page so it renders the correct visual fill. When XP is 100 out of 900 (next level threshold), the bar must be visually filled to approximately 11% (100/900). The bar must never appear empty when XP > 0.",
       "files": [
-        "frontend/public/map/map.js",
-        "frontend/src/components/sections/MapMundoLeaflet.tsx"
+        "frontend/src/components/sections/Profile.tsx"
       ],
       "components": [
         "blob-storage@4.0.0",
@@ -162,15 +43,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-35"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-generate-a-realistic-3d-style-golden-qmy-coin-image-to-be-used-as-a-static-decorative-asset-on-the-hud-page-the-coin-should-have-a-metallic-gold-surface-with-qmy-text-engraved-on-the-face-a-ridged-edge-and-subtle-light-reflections-to-look-like-a-physical-cryptocurrency-coin",
-      "featureTitle": "Generate a realistic 3D-style golden QMY coin image to be used as a static decorative asset on the HUD page. The coin should have a metallic gold surface with 'QMY' text engraved on the face, a ridged edge, and subtle light reflections to look like a physical cryptocurrency coin.",
+      "featureId": "feature-fix-the-canister-id-links-in-the-profile-page-so-they-display-the-full-canister-id-without-truncation-and-link-to-the-correct-icscan-urls-each-canister-entry-must-be-a-full-clickable-anchor-opening-in-a-new-tab-the-five-carteira-a-canisters-to-display-are-frontend-crjop-jyaaa-aaaah-atfaq-cai-ledger-qmy-5o54h-giaaa-aaaad-aentq-cai-logic-ckmsk-taaaa-aaaah-atfca-cai-docs-whu4t-kiaaa-aaaah-qsc5q-cai-governance-nemlr-6aaaa-aaaan-q32la-cai-each-link-must-point-to-https-icscan-io-canister-canister-id-and-open-target-blank",
+      "featureTitle": "Fix the canister ID links in the Profile page so they display the full canister ID without truncation, and link to the correct ICScan URLs. Each canister entry must be a full clickable anchor opening in a new tab. The five Carteira A canisters to display are: Frontend (crjop-jyaaa-aaaah-atfaq-cai), Ledger QMY (5o54h-giaaa-aaaad-aentq-cai), Logic (ckmsk-taaaa-aaaah-atfca-cai), Docs (whu4t-kiaaa-aaaah-qsc5q-cai), Governance (nemlr-6aaaa-aaaan-q32la-cai). Each link must point to https://icscan.io/canister/<canister-id> and open target='_blank'.",
       "files": [
-        "frontend/src/components/sections/HUD.tsx"
+        "frontend/src/components/sections/Profile.tsx"
       ],
       "components": [
         "blob-storage@4.0.0",
@@ -185,7 +66,30 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-36"
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-game-stats-section-in-the-profile-page-displays-the-following-fields-with-correct-values-coins-captured-from-canister-or-walletbalance-total-qmy-1000-qmy-from-ledger-monsters-showing-captured-count-out-of-50-e-g-0-50-these-must-all-be-visible-and-correctly-populated-in-the-hcoragem-profile-view",
+      "featureTitle": "Ensure the Game Stats section in the Profile page displays the following fields with correct values: 'Coins Captured' (from canister or walletBalance), 'Total QMY' (1000 QMY from ledger), 'Monsters' (showing captured count out of 50, e.g. '0/50'). These must all be visible and correctly populated in the HCoragem profile view.",
+      "files": [
+        "frontend/src/components/sections/Profile.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }
