@@ -1,71 +1,80 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Profile UI bugs: Coins Captured count, XP bar visual, and canister ID links",
+  "title": "Unify authentication and canisters between quantumoneyar.app and quantumoney.app",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix 'Coins Captured' stat display in Profile page to show real canister balance instead of defaulting to 0",
+      "summary": "Configure Internet Identity authentication to use identity.ic0.app exclusively",
       "acceptanceCriteria": [
-        "Profile page shows '1000 QMY' (or the real canister balance) under 'Coins Captured' / 'Moedas Capturadas'",
-        "Value never falls back to '0' when a real wallet balance is available",
-        "Fallback chain: canister coins → walletBalance → 0"
+        "The AuthClient in quantumoneyar.app is initialized with identityProvider set to https://identity.ic0.app",
+        "No alternative identity provider, local identity generation, or previously stored session identity is used",
+        "After login, the Principal displayed in quantumoneyar.app matches the Principal displayed in quantumoney.app for the same Internet Identity account",
+        "Any previously cached identity or localStorage session data from a different provider is cleared on app load"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/sections/Profile.tsx",
+          "path": "frontend/src/hooks/useInternetIdentity.ts",
           "operation": "modify",
-          "description": "Update the 'Coins Captured' / 'Moedas Capturadas' stat display logic to use `userStats.coins || walletBalance` instead of `userStats.coins || 0`. Locate the Game Stats section where coins are displayed and ensure the value reads from playerState data with proper fallback to walletBalance before defaulting to 0. The field must show the real QMY balance (e.g., '1000 QMY') when available."
+          "description": "Modify the AuthClient initialization to explicitly set identityProvider to 'https://identity.ic0.app' in the login method. Remove any fallback identity providers or local identity generation. Ensure derivationOrigin is not set or is consistent with quantumoney.app configuration. Clear any stale identity/session data from localStorage before initializing AuthClient."
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Add an initialization step before mounting the React app that clears stale identity-related localStorage keys (e.g., keys prefixed with 'ic-identity-', 'ic-delegation-', or any legacy authentication keys). This ensures no outdated principal from a previous misconfigured session persists across app loads."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fix XP progress bar visual fill to accurately reflect current XP percentage relative to next level threshold",
+      "summary": "Point all backend canister calls to the shared canisters used by quantumoney.app",
       "acceptanceCriteria": [
-        "XP bar width is computed as Math.min((currentXP / nextLevelXP) * 100, 100) percent",
-        "With XP=100 and next threshold=900, bar is visually ~11% filled",
-        "Bar is never 0% wide when currentXP > 0"
+        "All canister ID constants in the frontend configuration match the five canonical IDs listed above",
+        "No other canister IDs are used anywhere in the codebase for actor creation or API calls",
+        "The useActor hook creates actors targeting these canister IDs",
+        "Profile, XP, QMY balance, and gameplay history are loaded from these shared canisters"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/sections/Profile.tsx",
+          "path": "frontend/src/hooks/useActor.ts",
           "operation": "modify",
-          "description": "Fix the XP progress bar rendering in the Profile page so it computes the visual fill percentage correctly. The bar width should be calculated as `Math.min((currentXP / nextLevelXP) * 100, 100)` and applied to the bar's style or className. Ensure when XP=100 and nextLevelXP=900, the bar renders at approximately 11% width. The bar must never appear empty (0% width) when currentXP > 0."
+          "description": "Replace any hardcoded canister IDs in the actor creation logic with the canonical IDs: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Ensure the createActor or actor initialization function uses the Logic canister ID (ckmsk-taaaa-aaaah-atfca-cai) as the primary backend canister for all gameplay and profile operations."
+        },
+        {
+          "path": "frontend/capacitor.config.json",
+          "operation": "modify",
+          "description": "Update the server.url configuration if it references a canister ID directly, ensuring it points to the correct network endpoint that resolves to the shared canisters. Verify that any hardcoded canister references in plugin configurations are removed or updated to match the canonical IDs."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Fix canister ID links in Profile page to display full IDs without truncation and link to ICScan URLs",
+      "summary": "Clear stale identity and session data on app initialization and force fresh Internet Identity login",
       "acceptanceCriteria": [
-        "All five canister IDs are displayed in full without ellipsis or truncation",
-        "Each canister ID is wrapped in an anchor tag with href='https://icscan.io/canister/<id>' and target='_blank'",
-        "Canister labels (Frontend, Ledger QMY, Logic, Docs, Governance) are shown alongside each ID",
-        "Links are styled to be readable on dark background (gold or light accent color)"
+        "On first load after this change, any localStorage/sessionStorage entries tied to a previous identity session are removed",
+        "Users are prompted to log in again via Internet Identity if a stale session is detected",
+        "After re-authentication, the profile, XP, QMY balance, and history shown in quantumoneyar.app are identical to those shown in quantumoney.app for the same account"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/sections/Profile.tsx",
+          "path": "frontend/src/hooks/useInternetIdentity.ts",
           "operation": "modify",
-          "description": "Fix the Carteira A canister ID display section in the Profile page. Replace any truncated or shortened canister ID text with full IDs: Frontend (crjop-jyaaa-aaaah-atfaq-cai), Ledger QMY (5o54h-giaaa-aaaad-aentq-cai), Logic (ckmsk-taaaa-aaaah-atfca-cai), Docs (whu4t-kiaaa-aaaah-qsc5q-cai), Governance (nemlr-6aaaa-aaaan-q32la-cai). Wrap each canister ID in an anchor tag with href='https://icscan.io/canister/<canister-id>' and target='_blank' rel='noopener noreferrer'. Apply gold or light accent color styling (text-yellow-400 or text-amber-400) for readability on dark background. Include the label (Frontend, Ledger QMY, Logic, Docs, Governance) before each clickable ID. Ensure no CSS text-overflow ellipsis is applied to these links."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Ensure Game Stats section displays Coins Captured, Total QMY, and Monsters fields with correct values",
-      "acceptanceCriteria": [
-        "Game Stats section shows 'Coins Captured', 'Total QMY', and 'Monsters' fields",
-        "'Total QMY' reflects the QMY Ledger balance (5o54h-giaaa-aaaad-aentq-cai)",
-        "'Monsters' shows captured/total format (e.g. '0/50')",
-        "Section is visible without requiring scroll when on desktop and is accessible on mobile"
-      ],
-      "file_operations": [
+          "description": "Add logic to detect stale sessions (e.g., by checking a version flag in localStorage or comparing stored identity provider URLs). If a stale session is detected, clear all identity-related localStorage keys and call AuthClient.logout() before prompting the user to log in again. Ensure the clear() method also removes any cached principal or delegation data."
+        },
         {
-          "path": "frontend/src/components/sections/Profile.tsx",
+          "path": "frontend/src/lib/arInteractionsStore.ts",
           "operation": "modify",
-          "description": "Verify and ensure the Game Stats section in the Profile page displays all three required fields: 'Coins Captured' (using canister coins or walletBalance), 'Total QMY' (showing the QMY Ledger balance from canister 5o54h-giaaa-aaaad-aentq-cai, e.g., '1000 QMY'), and 'Monsters' (in captured/total format like '0/50'). Ensure the section is positioned high enough in the layout to be visible on desktop without scrolling, and remains accessible on mobile viewports. If any of these fields are missing or incorrectly populated, add or update the rendering logic to pull from playerState and display the values correctly."
+          "description": "Add a method to clear all cached AR interaction data (locked coins, captured monsters) when the user logs out or when a stale session is detected. Invoke this method from the InternetIdentity clear() or logout flow to ensure no orphaned data from a previous principal persists."
+        },
+        {
+          "path": "frontend/src/lib/mockGameplayState.ts",
+          "operation": "modify",
+          "description": "Add a clearAll() method that removes all cached gameplay state from localStorage. Call this method during logout or stale session cleanup to ensure the next login fetches fresh data from the shared canisters."
+        },
+        {
+          "path": "frontend/src/main.tsx",
+          "operation": "modify",
+          "description": "Extend the initialization step to also clear any cached gameplay state (arInteractionsStore, mockGameplayState, qmyApi caches) if stale identity data is detected. This ensures a clean slate before the user re-authenticates with Internet Identity."
         }
       ]
     }

@@ -1,75 +1,66 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Quantumoney AR game project running on Internet Computer Protocol (ICP). Two domains (quantumoney.app and quantumoneyar.app) share a single unified architecture using Carteira A canisters. Features include unified wallet, unified profile via Internet Identity, AR game map, and QMY token ledger sync.",
+  "summary": "QuantumoneyAR.app is a companion AR/mobile app for Quantumoney.app — both belong to the same project and must share the same Internet Identity Principal and ICP canisters. quantumoneyar.app is intended for the Android Play Store. Authentication uses Internet Identity (identity.ic0.app). QMY is a cryptocurrency being created via a separate wallet.",
   "architectural_notes": [
-    "ICP-only architecture using Carteira A canisters: Frontend crjop-jyaaa-aaaah-atfaq-cai, Ledger 5o54h-giaaa-aaaad-aentq-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance nemlr-6aaaa-aaaan-q32la-cai",
-    "Both quantumoney.app and quantumoneyar.app share the same frontend canister (crjop-jyaaa-aaaah-atfaq-cai) for unified sync",
-    "Authentication via Internet Identity — single login provides unified profile across both domains",
-    "Governance/Treasury canisters are conceptual; operational AR game logic is handled by Logic canister (ckmsk-taaaa-aaaah-atfca-cai)"
+    "Both quantumoney.app and quantumoneyar.app are the SAME project — quantumoneyar.app is the Android Play Store app",
+    "Internet Identity provider: identity.ic0.app (no local/alternative auth allowed)",
+    "All canisters are shared: Frontend crjop-jyaaa-aaaah-atfaq-cai, Docs whu4t-kiaaa-aaaah-qsc5q-cai, Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai",
+    "Controller Principal ID: e3cl3-r5p4k-yojw3-6cniv-vat7x-ojzgv-zqxvo-72lff-l7sjk-4fxyj-wae",
+    "Main ICP Account ID: 4eda1ee6641b1eafc87b96c0bb98b8afd04ab5ac5d60c4e4b04fab50b9284bae",
+    "QMY is a cryptocurrency being created via the wallet above — not stored locally"
   ],
   "known_issues": [
-    "Profile page shows '0 Moedas Capturadas' instead of real balance (1000 QMY)",
-    "XP bar visually empty despite XP value 100/900 being present",
-    "Canister IDs truncated/cut off in profile UI links"
+    "quantumoneyar.app is currently using different canisters/identity than quantumoney.app, causing duplicate profiles and divergent balances"
   ],
   "isFixRequest": true,
-  "existing_features": [
-    {
-      "id": "feature-in-the-profile-page-frontend-src-components-sections-profile-tsx-fix-the-coins-captured-stat-display-so-it-shows-the-real-value-by-using-userstats-coins-walletbalance-instead-of-defaulting-to-0-when-the-canister-balance-is-1000-qmy-the-field-must-display-1000-qmy-not-0-moedas-capturadas",
-      "title": "In the Profile page (frontend/src/components/sections/Profile.tsx), fix the 'Coins Captured' stat display so it shows the real value by using `userStats.coins || walletBalance` instead of defaulting to 0. When the canister balance is 1000 QMY, the field must display '1000 QMY' (not '0 Moedas Capturadas').",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-xp-progress-bar-in-the-profile-page-so-it-renders-the-correct-visual-fill-when-xp-is-100-out-of-900-next-level-threshold-the-bar-must-be-visually-filled-to-approximately-11-100-900-the-bar-must-never-appear-empty-when-xp-0",
-      "title": "Fix the XP progress bar in the Profile page so it renders the correct visual fill. When XP is 100 out of 900 (next level threshold), the bar must be visually filled to approximately 11% (100/900). The bar must never appear empty when XP > 0.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-fix-the-canister-id-links-in-the-profile-page-so-they-display-the-full-canister-id-without-truncation-and-link-to-the-correct-icscan-urls-each-canister-entry-must-be-a-full-clickable-anchor-opening-in-a-new-tab-the-five-carteira-a-canisters-to-display-are-frontend-crjop-jyaaa-aaaah-atfaq-cai-ledger-qmy-5o54h-giaaa-aaaad-aentq-cai-logic-ckmsk-taaaa-aaaah-atfca-cai-docs-whu4t-kiaaa-aaaah-qsc5q-cai-governance-nemlr-6aaaa-aaaan-q32la-cai-each-link-must-point-to-https-icscan-io-canister-canister-id-and-open-target-blank",
-      "title": "Fix the canister ID links in the Profile page so they display the full canister ID without truncation, and link to the correct ICScan URLs. Each canister entry must be a full clickable anchor opening in a new tab. The five Carteira A canisters to display are: Frontend (crjop-jyaaa-aaaah-atfaq-cai), Ledger QMY (5o54h-giaaa-aaaad-aentq-cai), Logic (ckmsk-taaaa-aaaah-atfca-cai), Docs (whu4t-kiaaa-aaaah-qsc5q-cai), Governance (nemlr-6aaaa-aaaan-q32la-cai). Each link must point to https://icscan.io/canister/<canister-id> and open target='_blank'.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-ensure-the-game-stats-section-in-the-profile-page-displays-the-following-fields-with-correct-values-coins-captured-from-canister-or-walletbalance-total-qmy-1000-qmy-from-ledger-monsters-showing-captured-count-out-of-50-e-g-0-50-these-must-all-be-visible-and-correctly-populated-in-the-hcoragem-profile-view",
-      "title": "Ensure the Game Stats section in the Profile page displays the following fields with correct values: 'Coins Captured' (from canister or walletBalance), 'Total QMY' (1000 QMY from ledger), 'Monsters' (showing captured count out of 50, e.g. '0/50'). These must all be visible and correctly populated in the HCoragem profile view.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    }
-  ],
+  "existing_features": [],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Unified sync: single wallet and profile across quantumoney.app and quantumoneyar.app using Carteira A canisters",
+      "summary": "Unify authentication: quantumoneyar.app must use the same Internet Identity (identity.ic0.app) and return the same Principal as quantumoney.app",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Fix Terms bar/overlay bug: accept terms persists via localStorage and enables login on both domains",
+      "summary": "Connect quantumoneyar.app to the same ICP canisters used by quantumoney.app (Frontend: crjop-jyaaa-aaaah-atfaq-cai, Ledger: 5o54h-giaaa-aaaad-aentq-cai, Treasury: nemlr-6aaaa-aaaan-q32la-cai, etc.)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Fix profile UI bugs on quantumoneyar.app: correct 'Moedas Capturadas' count, XP bar visual, and full canister ID links",
+      "summary": "Eliminate duplicate profiles: same login ID must produce the same profile, XP, QMY balance, and history across both domains",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider — the same provider used by quantumoney.app — so that logging in with the same Internet Identity account on both domains produces the exact same Principal.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Point all backend canister calls in quantumoneyar.app to the same canisters used by quantumoney.app: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Remove or override any hardcoded canister IDs that differ from these values.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Clear all stale identity and session data (localStorage keys related to identity, principal, and session) on app initialization in quantumoneyar.app, then force a fresh Internet Identity login so no outdated principal from a previous misconfigured session persists.",
+      "reqIds": [
+        "REQ-3"
+      ],
       "status": "pending"
     }
   ],
-  "gameProjectType": "2d",
-  "projectName": "Quantumoney AR",
+  "gameProjectType": "none",
+  "projectName": "QuantumoneyAR",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

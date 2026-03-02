@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Camera, Map, User, BookOpen } from 'lucide-react';
+import { Home, Camera, Map, User, BookOpen, type LucideIcon } from 'lucide-react';
 import type { Section } from '../App';
 
 interface BottomNavProps {
@@ -7,7 +7,7 @@ interface BottomNavProps {
   onNavigate: (section: Section) => void;
 }
 
-const NAV_ITEMS: { section: Section; icon: React.ElementType; label: string }[] = [
+const NAV_ITEMS: { section: Section; icon: LucideIcon; label: string }[] = [
   { section: 'hud', icon: Home, label: 'Home' },
   { section: 'ar-view', icon: Camera, label: 'AR' },
   { section: 'map', icon: Map, label: 'Map' },

@@ -1,100 +1,81 @@
 {
   "kind": "build_request",
-  "title": "Fix Profile UI bugs: Coins Captured count, XP bar visual, and canister ID links",
-  "projectName": "QuantumMoney AR",
+  "title": "Unify authentication and canisters between quantumoneyar.app and quantumoney.app",
+  "projectName": "Quantumoney AR",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "In the Profile page (frontend/src/components/sections/Profile.tsx), fix the 'Coins Captured' stat display so it shows the real value by using `userStats.coins || walletBalance` instead of defaulting to 0. When the canister balance is 1000 QMY, the field must display '1000 QMY' (not '0 Moedas Capturadas').",
+      "text": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider — the same provider used by quantumoney.app — so that logging in with the same Internet Identity account on both domains produces the exact same Principal.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "\"0 Moedas Capturadas\" ← ERRO (1000 QMY real)",
-          "Moedas Capturadas: ${userStats.coins || walletBalance}"
+          "a aplicação quantumoneyar.app não está a usar os mesmos canisters do quantumoney.app, eu quero apenas o mesmo perfil para ambos os sites"
         ]
       },
       "acceptanceCriteria": [
-        "Profile page shows '1000 QMY' (or the real canister balance) under 'Coins Captured' / 'Moedas Capturadas'",
-        "Value never falls back to '0' when a real wallet balance is available",
-        "Fallback chain: canister coins → walletBalance → 0"
+        "The AuthClient in quantumoneyar.app is initialized with identityProvider set to https://identity.ic0.app",
+        "No alternative identity provider, local identity generation, or previously stored session identity is used",
+        "After login, the Principal displayed in quantumoneyar.app matches the Principal displayed in quantumoney.app for the same Internet Identity account",
+        "Any previously cached identity or localStorage session data from a different provider is cleared on app load"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the XP progress bar in the Profile page so it renders the correct visual fill. When XP is 100 out of 900 (next level threshold), the bar must be visually filled to approximately 11% (100/900). The bar must never appear empty when XP > 0.",
+      "text": "Point all backend canister calls in quantumoneyar.app to the same canisters used by quantumoney.app: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Remove or override any hardcoded canister IDs that differ from these values.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "XP 100/900 mas barra zerada"
+          "QMY Frontend / Website: crjop-jyaaa-aaaah-atfaq-cai",
+          "QMYledger token standard: 5o54h-giaaa-aaaad-aentq-cai",
+          "QMY Governance/Treasury: nemlr-6aaaa-aaaan-q32la-cai",
+          "QMY Logic (conceitual..): ckmsk-taaaa-aaaah-atfca-cai",
+          "QMY Gold Paper & Docs: whu4t-kiaaa-aaaah-qsc5q-cai"
         ]
       },
       "acceptanceCriteria": [
-        "XP bar width is computed as Math.min((currentXP / nextLevelXP) * 100, 100) percent",
-        "With XP=100 and next threshold=900, bar is visually ~11% filled",
-        "Bar is never 0% wide when currentXP > 0"
+        "All canister ID constants in the frontend configuration match the five canonical IDs listed above",
+        "No other canister IDs are used anywhere in the codebase for actor creation or API calls",
+        "The useActor hook creates actors targeting these canister IDs",
+        "Profile, XP, QMY balance, and gameplay history are loaded from these shared canisters"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Fix the canister ID links in the Profile page so they display the full canister ID without truncation, and link to the correct ICScan URLs. Each canister entry must be a full clickable anchor opening in a new tab. The five Carteira A canisters to display are: Frontend (crjop-jyaaa-aaaah-atfaq-cai), Ledger QMY (5o54h-giaaa-aaaad-aentq-cai), Logic (ckmsk-taaaa-aaaah-atfca-cai), Docs (whu4t-kiaaa-aaaah-qsc5q-cai), Governance (nemlr-6aaaa-aaaan-q32la-cai). Each link must point to https://icscan.io/canister/<canister-id> and open target='_blank'.",
+      "text": "Clear all stale identity and session data (localStorage keys related to identity, principal, and session) on app initialization in quantumoneyar.app, then force a fresh Internet Identity login so no outdated principal from a previous misconfigured session persists.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "Canister IDs cortados",
-          "<a href=\"https://icscan.io/canister/crjob-jyaaa-aaaah-atfaq-cai\" target=\"_blank\">Frontend: crjop-jyaaa-aaaah-atfaq-cai</a>"
+          "não pode haver 2 perfis quando se efetuar login com o mesmo ID"
         ]
       },
       "acceptanceCriteria": [
-        "All five canister IDs are displayed in full without ellipsis or truncation",
-        "Each canister ID is wrapped in an anchor tag with href='https://icscan.io/canister/<id>' and target='_blank'",
-        "Canister labels (Frontend, Ledger QMY, Logic, Docs, Governance) are shown alongside each ID",
-        "Links are styled to be readable on dark background (gold or light accent color)"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Ensure the Game Stats section in the Profile page displays the following fields with correct values: 'Coins Captured' (from canister or walletBalance), 'Total QMY' (1000 QMY from ledger), 'Monsters' (showing captured count out of 50, e.g. '0/50'). These must all be visible and correctly populated in the HCoragem profile view.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Total QMY: 1000 QMY",
-          "Monstros: 0/50"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Game Stats section shows 'Coins Captured', 'Total QMY', and 'Monsters' fields",
-        "'Total QMY' reflects the QMY Ledger balance (5o54h-giaaa-aaaad-aentq-cai)",
-        "'Monsters' shows captured/total format (e.g. '0/50')",
-        "Section is visible without requiring scroll when on desktop and is accessible on mobile"
+        "On first load after this change, any localStorage/sessionStorage entries tied to a previous identity session are removed",
+        "Users are prompted to log in again via Internet Identity if a stale session is detected",
+        "After re-authentication, the profile, XP, QMY balance, and history shown in quantumoneyar.app are identical to those shown in quantumoney.app for the same account"
       ]
     }
   ],
   "constraints": [
-    "Preserve existing Internet Identity (ICP) login flow — do not alter authentication logic",
-    "Preserve QMY Ledger sync with canister 5o54h-giaaa-aaaad-aentq-cai",
-    "Preserve Carteira A controller architecture — do not change canister IDs",
-    "Do not modify files in frontend/src/hooks/useInternetIdentity.ts, useActor.ts, or frontend/src/main.tsx",
-    "Do not modify files under frontend/src/components/ui"
+    "Do not change the layout, visual design, or any feature modules",
+    "Do not alter the backend/main.mo canister logic",
+    "Do not introduce any authentication method other than Internet Identity (identity.ic0.app)",
+    "The five canister IDs provided by the user must be used exactly as given — do not invent or substitute IDs"
   ],
   "nonGoals": [
-    "Adding new backend canister logic or changing backend data models",
-    "Changing authentication flow or Internet Identity integration",
-    "Modifying AR camera or map components",
-    "Fixing Terms modal (handled in a previous build)",
-    "Cross-domain synchronization changes beyond what is already implemented"
+    "Merging the two Caffeine projects into a single deployment",
+    "Creating or modifying any ICP canister smart contract code",
+    "Adding new UI screens or features",
+    "Implementing the QMY cryptocurrency wallet creation flow"
   ],
   "imageRequirements": {
     "required": [],

@@ -1,34 +1,73 @@
-import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useMemo } from 'react';
 import { privacyContent } from '../../../content/legalContent';
+import LegalTableOfContents from '../../legal/LegalTableOfContents';
+import BackToTopButton from '../../legal/BackToTopButton';
+import { Shield } from 'lucide-react';
 
 export default function PrivacyPolicy() {
+  const sections = useMemo(
+    () =>
+      privacyContent.sections.map((s, i) => ({
+        id: `privacy-section-${i}`,
+        title: s.title,
+      })),
+    []
+  );
+
   return (
-    <div className="bg-black text-white pb-24 px-4 py-6">
-      <div className="max-w-lg mx-auto">
-        <h1 className="text-2xl font-bold text-yellow-400 mb-1">{privacyContent.title}</h1>
-        <p className="text-gray-500 text-xs mb-4">
-          Last Updated: {privacyContent.lastUpdated} | Version {privacyContent.version}
-        </p>
-        <ScrollArea className="max-h-[70vh] pr-2">
-          <div className="space-y-4">
+    <div className="min-h-screen bg-black px-4 py-8 text-white">
+      {/* Page header */}
+      <div className="mx-auto mb-8 max-w-4xl text-center">
+        <div className="mb-3 flex justify-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-gold/10">
+            <Shield className="text-gold" size={24} />
+          </div>
+        </div>
+        <h1 className="font-display text-3xl font-bold text-gold md:text-4xl">
+          {privacyContent.title}
+        </h1>
+        {privacyContent.lastUpdated && (
+          <p className="mt-2 text-sm text-gold/50">
+            Last updated: {privacyContent.lastUpdated}
+          </p>
+        )}
+      </div>
+
+      {/* Layout: sidebar + content */}
+      <div className="mx-auto flex max-w-4xl gap-8">
+        <LegalTableOfContents sections={sections} title="Sections" />
+
+        {/* Main content */}
+        <main className="min-w-0 flex-1">
+          <div className="space-y-8">
             {privacyContent.sections.map((section, i) => (
-              <div key={i}>
-                <h2 className="text-yellow-300 font-semibold text-sm mb-1">{section.title}</h2>
-                {Array.isArray(section.content) ? (
-                  <ul className="space-y-1">
-                    {section.content.map((item, j) => (
-                      <li key={j} className="text-gray-400 text-xs leading-relaxed">{item}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-400 text-xs leading-relaxed">{section.content}</p>
-                )}
-              </div>
+              <section
+                key={i}
+                id={`privacy-section-${i}`}
+                className="scroll-mt-20 rounded-2xl border border-gold/10 bg-black/40 p-5 backdrop-blur-sm"
+              >
+                <h2 className="mb-3 font-display text-lg font-bold text-gold md:text-xl">
+                  {section.title}
+                </h2>
+                <div className="space-y-3 text-sm leading-relaxed text-white/75">
+                  {Array.isArray(section.content)
+                    ? section.content.map((para, j) => (
+                        <p key={j}>{para}</p>
+                      ))
+                    : <p>{section.content}</p>}
+                </div>
+              </section>
             ))}
           </div>
-        </ScrollArea>
+
+          {/* Footer note */}
+          <div className="mt-8 rounded-xl border border-gold/10 bg-gold/5 p-4 text-center text-xs text-gold/50">
+            © {new Date().getFullYear()} Quantumoney AR · All rights reserved
+          </div>
+        </main>
       </div>
+
+      <BackToTopButton />
     </div>
   );
 }

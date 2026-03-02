@@ -1,58 +1,46 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-28T10:51:01.050Z",
+  "generatedAt": "2026-03-02T00:09:41.898Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 3,
+    "implemented": 0,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "In the Profile page (frontend/src/components/sections/Profile.tsx), fix the 'Coins Captured' stat display so it shows the real value by using `userStats.coins || walletBalance` instead of defaulting to 0. When the canister balance is 1000 QMY, the field must display '1000 QMY' (not '0 Moedas Capturadas').",
-        "status": "implemented",
+        "summary": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider — the same provider used by quantumoney.app — so that logging in with the same Internet Identity account on both domains produces the exact same Principal.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
+          "frontend/src/hooks/useInternetIdentity.ts",
+          "frontend/src/main.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
-        ]
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Fix the XP progress bar in the Profile page so it renders the correct visual fill. When XP is 100 out of 900 (next level threshold), the bar must be visually filled to approximately 11% (100/900). The bar must never appear empty when XP > 0.",
-        "status": "implemented",
+        "summary": "Point all backend canister calls in quantumoneyar.app to the same canisters used by quantumoney.app: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Remove or override any hardcoded canister IDs that differ from these values.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
+          "frontend/src/hooks/useActor.ts",
+          "frontend/capacitor.config.json"
         ],
-        "matchedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
-        ]
+        "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Fix the canister ID links in the Profile page so they display the full canister ID without truncation, and link to the correct ICScan URLs. Each canister entry must be a full clickable anchor opening in a new tab. The five Carteira A canisters to display are: Frontend (crjop-jyaaa-aaaah-atfaq-cai), Ledger QMY (5o54h-giaaa-aaaad-aentq-cai), Logic (ckmsk-taaaa-aaaah-atfca-cai), Docs (whu4t-kiaaa-aaaah-qsc5q-cai), Governance (nemlr-6aaaa-aaaan-q32la-cai). Each link must point to https://icscan.io/canister/<canister-id> and open target='_blank'.",
-        "status": "implemented",
+        "summary": "Clear all stale identity and session data (localStorage keys related to identity, principal, and session) on app initialization in quantumoneyar.app, then force a fresh Internet Identity login so no outdated principal from a previous misconfigured session persists.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
+          "frontend/src/hooks/useInternetIdentity.ts",
+          "frontend/src/lib/arInteractionsStore.ts",
+          "frontend/src/lib/mockGameplayState.ts",
+          "frontend/src/main.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Ensure the Game Stats section in the Profile page displays the following fields with correct values: 'Coins Captured' (from canister or walletBalance), 'Total QMY' (1000 QMY from ledger), 'Monsters' (showing captured count out of 50, e.g. '0/50'). These must all be visible and correctly populated in the HCoragem profile view.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/sections/Profile.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
@@ -61,7 +49,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/sections/Profile.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

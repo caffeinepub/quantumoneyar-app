@@ -2,16 +2,18 @@ import Nat "mo:core/Nat";
 import Map "mo:core/Map";
 import List "mo:core/List";
 import Int "mo:core/Int";
-import Time "mo:core/Time";
 import Text "mo:core/Text";
+import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
-
 import Runtime "mo:core/Runtime";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
+
 import MixinAuthorization "authorization/MixinAuthorization";
+
+//Make Actor migratable
 
 actor {
   include MixinStorage();
@@ -31,6 +33,7 @@ actor {
 
   let userProfiles = Map.empty<UserID, UserProfile>();
   let principalToUserId = Map.empty<Principal, UserID>();
+  let principalToUserIdGlobal = Map.empty<Principal, UserID>();
 
   var nextUserId : UserID = 1;
 
@@ -174,6 +177,8 @@ actor {
       Runtime.trap("Unauthorized: Only users can claim bonuses");
     };
 
+    enforceGlobalBonusLimit(caller);
+
     let userId = getOrCreateUserId(caller);
 
     switch (bonuses.get(userId)) {
@@ -182,10 +187,6 @@ actor {
         return;
       };
       case (null) {};
-    };
-
-    if (registrationCount >= MAX_BONUS_USERS) {
-      Runtime.trap("This bonus promotion has a limit of 100,000 users");
     };
 
     let now = Time.now();
@@ -235,6 +236,8 @@ actor {
       Runtime.trap("Unauthorized: Only users can claim bonuses");
     };
 
+    enforceGlobalBonusLimit(caller);
+
     let userId = getOrCreateUserId(caller);
 
     switch (bonuses.get(userId)) {
@@ -242,10 +245,6 @@ actor {
         Runtime.trap("User has already claimed this promotion");
       };
       case (null) {};
-    };
-
-    if (registrationCount >= MAX_BONUS_USERS) {
-      Runtime.trap("This bonus promotion has a limit of 100,000 users");
     };
 
     let now = Time.now();
@@ -326,6 +325,21 @@ actor {
       case (null) { null };
       case (?userId) { bonuses.get(userId) };
     };
+  };
+
+  func enforceGlobalBonusLimit(caller : Principal) {
+    if (registrationCount >= MAX_BONUS_USERS) {
+      Runtime.trap("This bonus promotion has a limit of 100,000 users");
+    };
+
+    switch (principalToUserIdGlobal.get(caller)) {
+      case (null) { () };
+      case (?_) {
+        Runtime.trap("You have already claimed the QMY registration bonus via quantumoney.app or quantumoneyar.app");
+      };
+    };
+    let newId = nextUserId;
+    principalToUserIdGlobal.add(caller, newId);
   };
 
   public type Monster = {

@@ -4,77 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#FFD700" />
+    <meta name="description" content="Quantumoney AR – Collect QMY coins in Augmented Reality on the Internet Computer blockchain." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="QMY AR" />
-    <meta name="description" content="Collect QMY coins in the real world with Augmented Reality" />
+    <meta name="apple-mobile-web-app-title" content="Quantumoney AR" />
     <meta name="mobile-web-app-capable" content="yes" />
-
-    <link rel="manifest" href="/manifest.json" />
+    <meta property="og:title" content="Quantumoney AR" />
+    <meta property="og:description" content="Collect QMY coins in Augmented Reality" />
+    <meta property="og:image" content="/assets/generated/qmy-coin-3d.dim_256x256.png" />
+    <link rel="icon" type="image/png" href="/assets/generated/qmy-coin.dim_128x128.png" />
     <link rel="apple-touch-icon" href="/assets/generated/pwa-icon-192.dim_192x192.png" />
-    <link rel="icon" type="image/png" href="/assets/generated/pwa-icon-192.dim_192x192.png" />
-
+    <link rel="manifest" href="/manifest.json" />
     <title>Quantumoney AR</title>
-
-    <!-- Leaflet CSS -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        });
+      }
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+      });
+      window.triggerPWAInstall = async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        }
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-
-    <script>
-      // PWA Install prompt
-      let deferredPrompt = null;
-
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        console.log('[PWA] Install prompt ready');
-      });
-
-      window.triggerPWAInstall = async function () {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log('[PWA] Install outcome:', outcome);
-          deferredPrompt = null;
-          return outcome === 'accepted';
-        }
-        return false;
-      };
-
-      window.isPWAInstallable = function () {
-        return deferredPrompt !== null;
-      };
-
-      // Service Worker registration
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/service-worker.js')
-            .then((reg) => {
-              console.log('[SW] Registered:', reg.scope);
-
-              reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                if (newWorker) {
-                  newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                      console.log('[SW] Update available');
-                    }
-                  });
-                }
-              });
-            })
-            .catch((err) => console.error('[SW] Registration failed:', err));
-        });
-      }
-    </script>
   </body>
 </html>
