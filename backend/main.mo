@@ -10,11 +10,11 @@ import Runtime "mo:core/Runtime";
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
-
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 
 //Make Actor migratable
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 

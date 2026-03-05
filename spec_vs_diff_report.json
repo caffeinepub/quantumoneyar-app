@@ -1,49 +1,60 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T00:09:41.894Z",
-  "summary": "The diff shows modifications to only two files: frontend-file-summaries.txt (a metadata/documentation file listing component descriptions) and project_state.json (a project state tracking file). Neither file contains actual implementation code for the three requirements. The diff does not show any changes to authentication configuration, canister ID constants, useActor hooks, or localStorage clearing logic. All three requirements (REQ-1, REQ-2, REQ-3) appear unimplemented in the actual frontend source code.",
+  "generatedAt": "2026-02-28T12:48:21.106Z",
+  "summary": "The diff implements most of the requested requirements: backend single-registration enforcement with stable storage, frontend welcome-back modal, 3D coins on Home/CoverPage/HUD, responsive legal pages with ToC sidebar, Caffeine removal from Footer and index.html, and i18n strings. Some gaps remain around REQ-1 backend specifics, REQ-7 OMY audit, and REQ-1 query exposure.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider",
-      "reason": "No changes to AuthClient initialization or identity provider configuration are visible in the diff. The frontend-file-summaries.txt mentions Internet Identity authentication in Wallet.tsx description but no actual code change implementing identityProvider set to https://identity.ic0.app is present.",
+      "requirement": "The backend exposes a query to check if a principal is already registered.",
+      "reason": "The truncated backend/main.mo does not show a dedicated public query function (e.g., isRegistered) that external callers can use to check registration status. The migration adds principalToUserIdGlobal but no explicit query endpoint is visible in the diff.",
       "evidence": [
-        "frontend-file-summaries.txt",
-        "project_state.json"
+        "backend/main.mo",
+        "backend/migration.mo"
       ]
     },
     {
-      "id": "REQ-2",
-      "requirement": "Point all backend canister calls in quantumoneyar.app to the five canonical canister IDs: crjop-jyaaa-aaaah-atfaq-cai, whu4t-kiaaa-aaaah-qsc5q-cai, nemlr-6aaaa-aaaan-q32la-cai, ckmsk-taaaa-aaaah-atfca-cai, 5o54h-giaaa-aaaad-aentq-cai",
-      "reason": "No changes to canister ID configuration files, environment variables, or useActor hook implementations are present in the diff. The BCQPanel.tsx summary mentions updated Additional Canister ID but no actual canister ID values are shown or verified in the diff.",
+      "id": "REQ-1",
+      "requirement": "The total QMY distributed via registration never exceeds 100,000,000 QMY; supply cap enforced in backend logic.",
+      "reason": "The truncated backend/main.mo does not show any cap check (e.g., total registered count times 1000 less than or equal to 100,000,000) before granting the bonus. This specific guard is not visible in the diff.",
       "evidence": [
-        "frontend-file-summaries.txt",
-        "project_state.json"
+        "backend/main.mo"
       ]
     },
     {
-      "id": "REQ-3",
-      "requirement": "Clear all stale identity and session data from localStorage/sessionStorage on app initialization and force a fresh Internet Identity login",
-      "reason": "No changes to app initialization logic, localStorage clearing routines, or session management code are present in the diff. The Header.tsx summary mentions logout clearing all query cache but this is logout behavior, not initialization-time stale session clearing.",
-      "evidence": [
-        "frontend-file-summaries.txt",
-        "project_state.json"
-      ]
+      "id": "REQ-7",
+      "requirement": "Perform a global audit and replace all occurrences of 'OMY' (when referring to the token) with 'QMY' across all source files, displayed text, and legalContent.ts.",
+      "reason": "No file named legalContent.ts is present in the diff, and no explicit OMY to QMY replacement is shown in any component or content file. The diff does not include legalContent.ts changes or a reported audit of OMY occurrences.",
+      "evidence": []
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Updates to multiple UI/section components including DAOStructure, EconomicModel, Introduction, MarketAnalysis, Roadmap, TechnicalAppendix, Technology, Tokenomics, and GameArchitecture with Tailwind CSS class updates",
-      "reason": "The build request explicitly states Do not change the layout, visual design, or any feature modules as a constraint, yet the diff shows descriptions of updated Tailwind classes and UI changes across many section components not related to authentication or canister configuration.",
+      "description": "A separate reusable QMY3DCoin component file was created as a standalone exportable component at frontend/src/components/3d/QMY3DCoin.tsx.",
+      "reason": "The build request asked for 3D coins on the Home page (HUD/CoverPage) but did not request a separate reusable 3D coin component abstraction. The HUD and CoverPage each implement their own inline coin logic, while the standalone QMY3DCoin.tsx file appears to be an additional extraction not explicitly requested.",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "frontend/src/components/3d/QMY3DCoin.tsx"
       ]
     }
   ],
   "confidence": 0.72,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
+    "frontend/index.html",
+    "frontend/src/components/3d/QMY3DCoin.tsx",
+    "frontend/src/components/BottomNav.tsx",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/WelcomeBackModal.tsx",
+    "frontend/src/components/legal/BackToTopButton.tsx",
+    "frontend/src/components/legal/LegalTableOfContents.tsx",
+    "frontend/src/components/sections/CoverPage.tsx",
+    "frontend/src/components/sections/HUD.tsx",
+    "frontend/src/components/sections/legal/PrivacyPolicy.tsx",
+    "frontend/src/components/sections/legal/Terms.tsx",
+    "frontend/src/i18n/locales/en.json",
+    "frontend/src/i18n/locales/pt.json",
     "project_state.json"
   ]
 }

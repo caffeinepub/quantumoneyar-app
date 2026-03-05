@@ -1,66 +1,99 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "QuantumoneyAR.app is a companion AR/mobile app for Quantumoney.app — both belong to the same project and must share the same Internet Identity Principal and ICP canisters. quantumoneyar.app is intended for the Android Play Store. Authentication uses Internet Identity (identity.ic0.app). QMY is a cryptocurrency being created via a separate wallet.",
+  "summary": "Web app project for quantumoneyar.app — a QMY token registration and reward platform using ICP wallets. Critical fixes requested: single registration per ICP wallet (1000 QMY, no double-dip across quantumoneyar.app and quantumoney.app), 3D animated QMY coins on home page, responsive legal pages (T&C and Privacy Policy), and removal of all Caffeine references.",
   "architectural_notes": [
-    "Both quantumoney.app and quantumoneyar.app are the SAME project — quantumoneyar.app is the Android Play Store app",
-    "Internet Identity provider: identity.ic0.app (no local/alternative auth allowed)",
-    "All canisters are shared: Frontend crjop-jyaaa-aaaah-atfaq-cai, Docs whu4t-kiaaa-aaaah-qsc5q-cai, Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai",
-    "Controller Principal ID: e3cl3-r5p4k-yojw3-6cniv-vat7x-ojzgv-zqxvo-72lff-l7sjk-4fxyj-wae",
-    "Main ICP Account ID: 4eda1ee6641b1eafc87b96c0bb98b8afd04ab5ac5d60c4e4b04fab50b9284bae",
-    "QMY is a cryptocurrency being created via the wallet above — not stored locally"
+    "Cross-app wallet registration check required: quantumoneyar.app and quantumoney.app share the same ICP wallet registry to prevent double-dip (1000+1000 QMY)",
+    "QMY supply allocation: 100k users × 1000 QMY = 100M QMY (10% of total supply) for registration rewards"
   ],
-  "known_issues": [
-    "quantumoneyar.app is currently using different canisters/identity than quantumoney.app, causing duplicate profiles and divergent balances"
-  ],
+  "known_issues": [],
   "isFixRequest": true,
-  "existing_features": [],
+  "existing_features": [
+    {
+      "id": "feature-on-the-frontend-when-a-user-logs-in-via-internet-identity-and-triggers-the-registration-welcome-bonus-flow-if-the-backend-indicates-the-wallet-is-already-registered-display-a-welcome-back-modal-instead-of-the-welcome-bonus-modal-showing-their-existing-qmy-balance-and-vesting-progress-if-the-wallet-is-new-show-the-existing-welcome-bonus-modal-prevent-the-client-from-calling-the-bonus-claim-endpoint-more-than-once-per-session",
+      "title": "On the frontend, when a user logs in via Internet Identity and triggers the registration/welcome bonus flow: if the backend indicates the wallet is already registered, display a 'Welcome back!' modal instead of the welcome bonus modal, showing their existing QMY balance and vesting progress. If the wallet is new, show the existing welcome bonus modal. Prevent the client from calling the bonus claim endpoint more than once per session.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-on-the-home-page-hud-coverpage-remove-all-static-2d-qmy-coin-images-and-replace-them-with-interactive-3d-animated-qmy-coins-using-react-three-fiber-and-three-js-the-coins-should-spin-float-with-a-gold-metallic-material-ambient-and-point-lighting-and-subtle-continuous-animation-rotation-bobbing-matching-the-visual-style-of-the-quantumoney-app-home-screen",
+      "title": "On the Home page (HUD/CoverPage), remove all static 2D QMY coin images and replace them with interactive 3D animated QMY coins using React Three Fiber and Three.js. The coins should spin/float with a gold metallic material, ambient and point lighting, and subtle continuous animation (rotation + bobbing), matching the visual style of the quantumoney.app home screen.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redo-the-terms-conditions-page-frontend-src-components-sections-legal-terms-tsx-with-a-fully-responsive-layout-the-new-layout-must-use-a-structured-readable-design-with-a-sticky-fixed-table-of-contents-sidebar-on-desktop-that-collapses-to-an-accordion-on-mobile-clear-section-headings-with-anchor-links-proper-typography-hierarchy-and-a-back-to-top-button-content-must-remain-from-legalcontent-ts-but-presentation-must-be-fully-responsive-across-all-screen-sizes",
+      "title": "Redo the Terms & Conditions page (frontend/src/components/sections/legal/Terms.tsx) with a fully responsive layout. The new layout must use a structured, readable design with a sticky/fixed table of contents sidebar on desktop that collapses to an accordion on mobile, clear section headings with anchor links, proper typography hierarchy, and a back-to-top button. Content must remain from legalContent.ts but presentation must be fully responsive across all screen sizes.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-redo-the-privacy-policy-page-frontend-src-components-sections-legal-privacypolicy-tsx-with-a-fully-responsive-layout-identical-in-structure-to-the-updated-terms-conditions-page-req-4-sticky-sidebar-on-desktop-collapsible-navigation-on-mobile-clear-typography-hierarchy-anchor-links-and-a-back-to-top-button-all-existing-privacy-content-from-legalcontent-ts-must-be-preserved",
+      "title": "Redo the Privacy Policy page (frontend/src/components/sections/legal/PrivacyPolicy.tsx) with a fully responsive layout identical in structure to the updated Terms & Conditions page (REQ-4): sticky sidebar on desktop, collapsible navigation on mobile, clear typography hierarchy, anchor links, and a back-to-top button. All existing privacy content from legalContent.ts must be preserved.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-all-references-to-caffeine-from-the-entire-frontend-codebase-including-footers-html-files-component-jsx-tsx-comments-and-any-visible-ui-text-the-footer-component-frontend-src-components-footer-tsx-must-be-cleaned-of-any-caffeine-mention-also-audit-frontend-index-html-and-all-other-components-for-hidden-or-rendered-caffeine-references-and-remove-them-the-footer-should-only-show-the-social-share-links-and-by-htgamers-credit-as-currently-specified",
+      "title": "Remove all references to 'Caffeine' from the entire frontend codebase, including footers, HTML files, component JSX/TSX, comments, and any visible UI text. The Footer component (frontend/src/components/Footer.tsx) must be cleaned of any Caffeine mention. Also audit frontend/index.html and all other components for hidden or rendered Caffeine references and remove them. The footer should only show the social share links and 'By HTgamers' credit as currently specified.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-perform-a-global-audit-of-all-frontend-components-content-files-and-ui-text-to-ensure-the-token-symbol-is-consistently-qmy-and-not-omy-anywhere-replace-all-occurrences-of-omy-when-referring-to-the-token-with-qmy-across-all-source-files-displayed-text-and-legalcontent-ts",
+      "title": "Perform a global audit of all frontend components, content files, and UI text to ensure the token symbol is consistently 'QMY' and not 'OMY' anywhere. Replace all occurrences of 'OMY' (when referring to the token) with 'QMY' across all source files, displayed text, and legalContent.ts.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Unify authentication: quantumoneyar.app must use the same Internet Identity (identity.ic0.app) and return the same Principal as quantumoney.app",
+      "summary": "Single QMY registration per ICP wallet (1000 QMY, cross-app limit, no double-dip, 'Bem-vindo de volta!' for returning wallets)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Connect quantumoneyar.app to the same ICP canisters used by quantumoney.app (Frontend: crjop-jyaaa-aaaah-atfaq-cai, Ledger: 5o54h-giaaa-aaaad-aentq-cai, Treasury: nemlr-6aaaa-aaaan-q32la-cai, etc.)",
+      "summary": "Replace 2D static QMY images on Home with 3D animated QMY coins (matching quantumoney.app home)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Eliminate duplicate profiles: same login ID must produce the same profile, XP, QMY balance, and history across both domains",
+      "summary": "Redo Terms & Conditions and Privacy Policy pages with fully responsive layout",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider — the same provider used by quantumoney.app — so that logging in with the same Internet Identity account on both domains produces the exact same Principal.",
-      "reqIds": [
-        "REQ-1"
-      ],
+      "summary": "Remove all 'Caffeine' references from footers, code, and HTML across the site",
+      "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-5",
-      "summary": "Point all backend canister calls in quantumoneyar.app to the same canisters used by quantumoney.app: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Remove or override any hardcoded canister IDs that differ from these values.",
+      "summary": "Enforce a single 1000 QMY registration bonus per ICP wallet principal. The backend must record each registered principal in stable storage. On registration attempt, check if the principal already exists: if yes, return a 'welcome back' response without granting QMY; if no, grant exactly 1000 QMY (100 unlocked + 900 locked over 9 months) and record the principal. This cap applies globally — a wallet that registered via quantumoney.app must not receive a second 1000 QMY grant on quantumoneyar.app. Total supply allocated for registration must not exceed 100,000,000 QMY (100k wallets × 1000 QMY).",
       "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Clear all stale identity and session data (localStorage keys related to identity, principal, and session) on app initialization in quantumoneyar.app, then force a fresh Internet Identity login so no outdated principal from a previous misconfigured session persists.",
-      "reqIds": [
-        "REQ-3"
+        "REQ-1"
       ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "QuantumoneyAR",
+  "projectName": "quantumoneyar.app",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

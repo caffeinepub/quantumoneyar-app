@@ -1,80 +1,210 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Unify authentication and canisters between quantumoneyar.app and quantumoney.app",
+  "title": "Critical Fixes: Single QMY Registration, 3D Coins, Responsive Legal Pages, Remove Caffeine References",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Configure Internet Identity authentication to use identity.ic0.app exclusively",
-      "acceptanceCriteria": [
-        "The AuthClient in quantumoneyar.app is initialized with identityProvider set to https://identity.ic0.app",
-        "No alternative identity provider, local identity generation, or previously stored session identity is used",
-        "After login, the Principal displayed in quantumoneyar.app matches the Principal displayed in quantumoney.app for the same Internet Identity account",
-        "Any previously cached identity or localStorage session data from a different provider is cleared on app load"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useInternetIdentity.ts",
-          "operation": "modify",
-          "description": "Modify the AuthClient initialization to explicitly set identityProvider to 'https://identity.ic0.app' in the login method. Remove any fallback identity providers or local identity generation. Ensure derivationOrigin is not set or is consistent with quantumoney.app configuration. Clear any stale identity/session data from localStorage before initializing AuthClient."
-        },
-        {
-          "path": "frontend/src/main.tsx",
-          "operation": "modify",
-          "description": "Add an initialization step before mounting the React app that clears stale identity-related localStorage keys (e.g., keys prefixed with 'ic-identity-', 'ic-delegation-', or any legacy authentication keys). This ensures no outdated principal from a previous misconfigured session persists across app loads."
-        }
-      ]
-    },
-    {
       "id": "REQ-2",
-      "summary": "Point all backend canister calls to the shared canisters used by quantumoney.app",
+      "summary": "Display 'Welcome back!' modal for returning wallets instead of welcome bonus modal",
       "acceptanceCriteria": [
-        "All canister ID constants in the frontend configuration match the five canonical IDs listed above",
-        "No other canister IDs are used anywhere in the codebase for actor creation or API calls",
-        "The useActor hook creates actors targeting these canister IDs",
-        "Profile, XP, QMY balance, and gameplay history are loaded from these shared canisters"
+        "First-time wallet login shows the welcome bonus modal with 1000 QMY breakdown.",
+        "Returning wallet login shows a 'Welcome back!' modal displaying current QMY balance and vesting status.",
+        "No duplicate bonus claim calls are made from the frontend for an already-registered wallet.",
+        "The 'Welcome back!' message is shown in both English and Portuguese per the app's i18n system."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActor.ts",
+          "path": "frontend/src/components/sections/HUD.tsx",
           "operation": "modify",
-          "description": "Replace any hardcoded canister IDs in the actor creation logic with the canonical IDs: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Ensure the createActor or actor initialization function uses the Logic canister ID (ckmsk-taaaa-aaaah-atfca-cai) as the primary backend canister for all gameplay and profile operations."
+          "description": "Modify the welcome bonus flow to check if the wallet is already registered before showing the bonus modal. When a user logs in via Internet Identity, query the backend to determine if the principal has already received the registration bonus. If already registered, display a new 'Welcome back!' modal showing their existing QMY balance and vesting progress instead of the welcome bonus modal. If new, show the existing WelcomeBonusModal. Add a guard to prevent duplicate bonus claim calls within the same session."
         },
         {
-          "path": "frontend/capacitor.config.json",
+          "path": "frontend/src/components/WelcomeBackModal.tsx",
+          "operation": "create",
+          "description": "Create a new modal component that displays 'Welcome back!' messaging for returning users. Show the user's current unlocked and locked QMY balances, vesting progress percentage, and next unlock date. Include a celebratory icon and a button to close the modal. Support both English and Portuguese via the LanguageContext. Style consistently with WelcomeBonusModal using the same glass-morphism card design."
+        },
+        {
+          "path": "frontend/src/i18n/locales/en.json",
           "operation": "modify",
-          "description": "Update the server.url configuration if it references a canister ID directly, ensuring it points to the correct network endpoint that resolves to the shared canisters. Verify that any hardcoded canister references in plugin configurations are removed or updated to match the canonical IDs."
+          "description": "Add English translations for the 'Welcome back!' modal including keys for: welcomeBack title, returningUserMessage, currentBalance label, vestingProgress label, nextUnlock label, and closeButton text."
+        },
+        {
+          "path": "frontend/src/i18n/locales/pt.json",
+          "operation": "modify",
+          "description": "Add Portuguese translations for the 'Welcome back!' modal matching the English keys: welcomeBack title (Bem-vindo de volta!), returningUserMessage, currentBalance label (Saldo Atual), vestingProgress label (Progresso de Vesting), nextUnlock label (Próximo Desbloqueio), and closeButton text."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Clear stale identity and session data on app initialization and force fresh Internet Identity login",
+      "summary": "Replace static 2D QMY coin images with interactive 3D animated coins using React Three Fiber",
       "acceptanceCriteria": [
-        "On first load after this change, any localStorage/sessionStorage entries tied to a previous identity session are removed",
-        "Users are prompted to log in again via Internet Identity if a stale session is detected",
-        "After re-authentication, the profile, XP, QMY balance, and history shown in quantumoneyar.app are identical to those shown in quantumoney.app for the same account"
+        "No static 2D QMY coin images remain on the Home page.",
+        "At least one 3D QMY coin is rendered using React Three Fiber with a gold metallic material.",
+        "The coin continuously rotates and bobs (floating animation) using useFrame.",
+        "The 3D canvas does not block user interaction with underlying UI elements.",
+        "The coin renders correctly on both desktop and mobile viewport sizes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useInternetIdentity.ts",
+          "path": "frontend/src/components/sections/CoverPage.tsx",
           "operation": "modify",
-          "description": "Add logic to detect stale sessions (e.g., by checking a version flag in localStorage or comparing stored identity provider URLs). If a stale session is detected, clear all identity-related localStorage keys and call AuthClient.logout() before prompting the user to log in again. Ensure the clear() method also removes any cached principal or delegation data."
+          "description": "Remove all static 2D QMY coin images from the CoverPage component. Replace them with a 3D QMY coin component rendered using React Three Fiber. Position the 3D coin prominently on the landing page with pointer-events: none on the Canvas to ensure it doesn't block user interaction with the 'Enter Game' button or other UI elements. The coin should animate continuously (rotate + bob) matching the visual style of quantumoney.app home screen."
         },
         {
-          "path": "frontend/src/lib/arInteractionsStore.ts",
-          "operation": "modify",
-          "description": "Add a method to clear all cached AR interaction data (locked coins, captured monsters) when the user logs out or when a stale session is detected. Invoke this method from the InternetIdentity clear() or logout flow to ensure no orphaned data from a previous principal persists."
+          "path": "frontend/src/components/3d/QMY3DCoin.tsx",
+          "operation": "create",
+          "description": "Create a React Three Fiber component that renders an animated 3D QMY coin. Use a cylindrical or torus geometry with a gold metallic MeshStandardMaterial. Add ambient and point lighting to create a premium shine effect. Implement continuous rotation animation using useFrame from @react-three/fiber with a slow Y-axis spin. Add a subtle vertical bobbing motion (sine wave on Y position) to create a floating effect. Ensure the coin maintains good visual fidelity on both mobile and desktop viewports."
         },
         {
-          "path": "frontend/src/lib/mockGameplayState.ts",
+          "path": "frontend/src/components/sections/HUD.tsx",
           "operation": "modify",
-          "description": "Add a clearAll() method that removes all cached gameplay state from localStorage. Call this method during logout or stale session cleanup to ensure the next login fetches fresh data from the shared canisters."
+          "description": "If any static 2D QMY coin images exist on the HUD page, replace them with the new QMY3DCoin component. Ensure the 3D canvas is properly sized and positioned, with pointer-events set to none so it doesn't interfere with the navigation buttons or stats display."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Redo Terms & Conditions page with fully responsive layout including sticky sidebar and mobile accordion",
+      "acceptanceCriteria": [
+        "The Terms & Conditions page renders correctly on mobile (320px+), tablet, and desktop viewports.",
+        "Desktop shows a sticky table of contents sidebar with section anchor links.",
+        "Mobile shows section navigation as a collapsible accordion or a dropdown.",
+        "Typography is hierarchical with clear h1/h2/h3 distinction and adequate line spacing.",
+        "A 'Back to top' button is visible when scrolling down.",
+        "All existing terms content from legalContent.ts is preserved."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/sections/legal/Terms.tsx",
+          "operation": "modify",
+          "description": "Completely redesign the Terms & Conditions page layout to be fully responsive. On desktop (≥1024px), display a sticky sidebar with a table of contents showing all section headings as anchor links. The main content area should display the terms text from legalContent.ts with clear typography hierarchy (h1 for page title, h2 for sections, h3 for subsections) and adequate line spacing. On mobile and tablet (<1024px), replace the sidebar with a collapsible accordion or dropdown menu for section navigation. Add a 'Back to top' button that appears when the user scrolls down. Preserve all existing content from legalContent.ts without modification. Use Tailwind responsive classes and the existing gold/dark theme design tokens."
         },
         {
-          "path": "frontend/src/main.tsx",
+          "path": "frontend/src/components/legal/LegalTableOfContents.tsx",
+          "operation": "create",
+          "description": "Create a reusable table of contents component for legal pages. On desktop, render as a sticky sidebar (position: sticky, top offset respecting header) with a vertical list of section links. Each link should scroll smoothly to its anchor and highlight the active section. On mobile, render as a collapsible accordion or dropdown button that expands to show the section list. Accept sections array as a prop with id/title pairs. Style with gold accents and glass-morphism effects matching the app theme."
+        },
+        {
+          "path": "frontend/src/components/legal/BackToTopButton.tsx",
+          "operation": "create",
+          "description": "Create a reusable 'Back to top' button component that appears when the user has scrolled down more than 300px. Position fixed in the bottom-right corner (with safe-area padding). On click, smoothly scroll the page back to the top. Show/hide with a fade transition. Style with a gold circular button with an upward arrow icon. Ensure it doesn't overlap with the bottom navigation on mobile."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Redo Privacy Policy page with fully responsive layout matching Terms & Conditions structure",
+      "acceptanceCriteria": [
+        "The Privacy Policy page renders correctly on mobile (320px+), tablet, and desktop viewports.",
+        "Desktop shows a sticky table of contents sidebar.",
+        "Mobile shows collapsible section navigation.",
+        "All existing privacy content from legalContent.ts is preserved.",
+        "Layout is visually consistent with the updated Terms & Conditions page."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/sections/legal/PrivacyPolicy.tsx",
           "operation": "modify",
-          "description": "Extend the initialization step to also clear any cached gameplay state (arInteractionsStore, mockGameplayState, qmyApi caches) if stale identity data is detected. This ensures a clean slate before the user re-authenticates with Internet Identity."
+          "description": "Redesign the Privacy Policy page using the same responsive layout structure as the updated Terms & Conditions page. Use the shared LegalTableOfContents component for sidebar/accordion navigation. Display privacy content from legalContent.ts with the same typography hierarchy and spacing. Include the BackToTopButton component. Ensure visual consistency with Terms.tsx in terms of colors, spacing, and responsive breakpoints."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Remove all 'Caffeine' references from the entire frontend codebase",
+      "acceptanceCriteria": [
+        "No visible 'Caffeine' text appears anywhere in the rendered UI.",
+        "No 'Caffeine' string exists in any HTML, JSX, TSX, or comment within the frontend source.",
+        "The footer only displays social share links and 'By HTgamers'.",
+        "frontend/index.html contains no 'Caffeine' references in meta tags, comments, or content."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Footer.tsx",
+          "operation": "modify",
+          "description": "Remove all mentions of 'Caffeine' from the Footer component source code, including any JSX content, comments, or string literals. Verify the footer only displays the social share links (WhatsApp, X, Telegram, Instagram) and the 'By HTgamers' credit line as specified in the current implementation."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Audit and remove any 'Caffeine' references from the HTML file including meta tags, comments, title, or any embedded content. Ensure only Quantumoney AR branding remains."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Search for and remove any 'Caffeine' string references in the Header component code, including comments and unused imports."
+        },
+        {
+          "path": "frontend/src/components/SideDrawer.tsx",
+          "operation": "modify",
+          "description": "Search for and remove any 'Caffeine' references from the side drawer navigation component, including section titles, comments, or footer content."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Audit the root App component for any 'Caffeine' references in comments, imports, or configuration objects and remove them."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Global audit to replace all 'OMY' token references with 'QMY'",
+      "acceptanceCriteria": [
+        "No instance of 'OMY' (as a token name) appears in any rendered UI text.",
+        "All source files use 'QMY' consistently as the token symbol.",
+        "legalContent.ts uses 'QMY' throughout."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/content/legalContent.ts",
+          "operation": "modify",
+          "description": "Perform a case-sensitive search for 'OMY' in the legalContent.ts file and replace every occurrence with 'QMY'. Verify that all references to the token symbol in terms, privacy policy, mission, and how-it-works sections now consistently use 'QMY'."
+        },
+        {
+          "path": "frontend/src/components/sections/Profile.tsx",
+          "operation": "modify",
+          "description": "Search for any 'OMY' token references in the Profile component and replace with 'QMY'. Check wallet balance displays, vesting info text, and any labels or tooltips."
+        },
+        {
+          "path": "frontend/src/components/sections/Tokenomics.tsx",
+          "operation": "modify",
+          "description": "Audit the Tokenomics page for 'OMY' strings and replace with 'QMY' in chart labels, axis titles, legend entries, and descriptive text."
+        },
+        {
+          "path": "frontend/src/components/sections/Vesting.tsx",
+          "operation": "modify",
+          "description": "Search the Vesting dashboard component for 'OMY' references and replace with 'QMY' in unlock schedule displays, table headers, and progress messages."
+        },
+        {
+          "path": "frontend/src/components/sections/GlobalDistribution.tsx",
+          "operation": "modify",
+          "description": "Replace any 'OMY' references with 'QMY' in the global distribution visualization including allocation labels, chart tooltips, and descriptive text."
+        },
+        {
+          "path": "frontend/src/components/sections/HUD.tsx",
+          "operation": "modify",
+          "description": "Search for 'OMY' in the HUD component and replace with 'QMY' in any stat displays, balance cards, or user info sections."
+        },
+        {
+          "path": "frontend/src/components/WelcomeBonusModal.tsx",
+          "operation": "modify",
+          "description": "Verify the welcome bonus modal uses 'QMY' consistently in the bonus breakdown display (100 unlocked QMY, 900 locked QMY). Replace any 'OMY' occurrences."
+        },
+        {
+          "path": "frontend/src/i18n/locales/en.json",
+          "operation": "modify",
+          "description": "Search the English locale file for any 'OMY' strings and replace with 'QMY' in all UI labels and messages."
+        },
+        {
+          "path": "frontend/src/i18n/locales/pt.json",
+          "operation": "modify",
+          "description": "Search the Portuguese locale file for any 'OMY' strings and replace with 'QMY' in all UI labels and messages."
+        },
+        {
+          "path": "frontend/src/components/wallet/QmySendReceive.tsx",
+          "operation": "modify",
+          "description": "Ensure the send/receive QMY component uses 'QMY' consistently as the token symbol in form labels, placeholders, and validation messages. Replace any 'OMY' occurrences."
         }
       ]
     }

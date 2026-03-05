@@ -1,54 +1,140 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T00:09:41.898Z",
+  "generatedAt": "2026-02-28T12:48:21.114Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 0,
+    "total": 7,
+    "implemented": 6,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider — the same provider used by quantumoney.app — so that logging in with the same Internet Identity account on both domains produces the exact same Principal.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/src/hooks/useInternetIdentity.ts",
-          "frontend/src/main.tsx"
-        ],
+        "summary": "Enforce a single 1000 QMY registration bonus per ICP wallet principal. The backend must record each registered principal in stable storage. On registration attempt, check if the principal already exists: if yes, return a 'welcome back' response without granting QMY; if no, grant exactly 1000 QMY (100 unlocked + 900 locked over 9 months) and record the principal. This cap applies globally — a wallet that registered via quantumoney.app must not receive a second 1000 QMY grant on quantumoneyar.app. Total supply allocated for registration must not exceed 100,000,000 QMY (100k wallets × 1000 QMY).",
+        "status": "unknown",
+        "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Point all backend canister calls in quantumoneyar.app to the same canisters used by quantumoney.app: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Remove or override any hardcoded canister IDs that differ from these values.",
-        "status": "missing",
+        "summary": "On the frontend, when a user logs in via Internet Identity and triggers the registration/welcome bonus flow: if the backend indicates the wallet is already registered, display a 'Welcome back!' modal instead of the welcome bonus modal, showing their existing QMY balance and vesting progress. If the wallet is new, show the existing welcome bonus modal. Prevent the client from calling the bonus claim endpoint more than once per session.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useActor.ts",
-          "frontend/capacitor.config.json"
+          "frontend/src/components/sections/HUD.tsx",
+          "frontend/src/components/WelcomeBackModal.tsx",
+          "frontend/src/i18n/locales/en.json",
+          "frontend/src/i18n/locales/pt.json"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/sections/HUD.tsx",
+          "frontend/src/components/WelcomeBackModal.tsx",
+          "frontend/src/i18n/locales/en.json",
+          "frontend/src/i18n/locales/pt.json"
+        ]
       },
       {
         "id": "REQ-3",
-        "summary": "Clear all stale identity and session data (localStorage keys related to identity, principal, and session) on app initialization in quantumoneyar.app, then force a fresh Internet Identity login so no outdated principal from a previous misconfigured session persists.",
-        "status": "missing",
+        "summary": "On the Home page (HUD/CoverPage), remove all static 2D QMY coin images and replace them with interactive 3D animated QMY coins using React Three Fiber and Three.js. The coins should spin/float with a gold metallic material, ambient and point lighting, and subtle continuous animation (rotation + bobbing), matching the visual style of the quantumoney.app home screen.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useInternetIdentity.ts",
-          "frontend/src/lib/arInteractionsStore.ts",
-          "frontend/src/lib/mockGameplayState.ts",
-          "frontend/src/main.tsx"
+          "frontend/src/components/sections/CoverPage.tsx",
+          "frontend/src/components/3d/QMY3DCoin.tsx",
+          "frontend/src/components/sections/HUD.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/sections/CoverPage.tsx",
+          "frontend/src/components/3d/QMY3DCoin.tsx",
+          "frontend/src/components/sections/HUD.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Redo the Terms & Conditions page (frontend/src/components/sections/legal/Terms.tsx) with a fully responsive layout. The new layout must use a structured, readable design with a sticky/fixed table of contents sidebar on desktop that collapses to an accordion on mobile, clear section headings with anchor links, proper typography hierarchy, and a back-to-top button. Content must remain from legalContent.ts but presentation must be fully responsive across all screen sizes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/sections/legal/Terms.tsx",
+          "frontend/src/components/legal/LegalTableOfContents.tsx",
+          "frontend/src/components/legal/BackToTopButton.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/sections/legal/Terms.tsx",
+          "frontend/src/components/legal/LegalTableOfContents.tsx",
+          "frontend/src/components/legal/BackToTopButton.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Redo the Privacy Policy page (frontend/src/components/sections/legal/PrivacyPolicy.tsx) with a fully responsive layout identical in structure to the updated Terms & Conditions page (REQ-4): sticky sidebar on desktop, collapsible navigation on mobile, clear typography hierarchy, anchor links, and a back-to-top button. All existing privacy content from legalContent.ts must be preserved.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/sections/legal/PrivacyPolicy.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/sections/legal/PrivacyPolicy.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Remove all references to 'Caffeine' from the entire frontend codebase, including footers, HTML files, component JSX/TSX, comments, and any visible UI text. The Footer component (frontend/src/components/Footer.tsx) must be cleaned of any Caffeine mention. Also audit frontend/index.html and all other components for hidden or rendered Caffeine references and remove them. The footer should only show the social share links and 'By HTgamers' credit as currently specified.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/Footer.tsx",
+          "frontend/index.html",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/SideDrawer.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/Footer.tsx",
+          "frontend/index.html"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Perform a global audit of all frontend components, content files, and UI text to ensure the token symbol is consistently 'QMY' and not 'OMY' anywhere. Replace all occurrences of 'OMY' (when referring to the token) with 'QMY' across all source files, displayed text, and legalContent.ts.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/content/legalContent.ts",
+          "frontend/src/components/sections/Profile.tsx",
+          "frontend/src/components/sections/Tokenomics.tsx",
+          "frontend/src/components/sections/Vesting.tsx",
+          "frontend/src/components/sections/GlobalDistribution.tsx",
+          "frontend/src/components/sections/HUD.tsx",
+          "frontend/src/components/WelcomeBonusModal.tsx",
+          "frontend/src/i18n/locales/en.json",
+          "frontend/src/i18n/locales/pt.json",
+          "frontend/src/components/wallet/QmySendReceive.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/sections/HUD.tsx",
+          "frontend/src/i18n/locales/en.json",
+          "frontend/src/i18n/locales/pt.json"
+        ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/index.html",
+    "frontend/src/components/3d/QMY3DCoin.tsx",
+    "frontend/src/components/BottomNav.tsx",
+    "frontend/src/components/Footer.tsx",
+    "frontend/src/components/WelcomeBackModal.tsx",
+    "frontend/src/components/legal/BackToTopButton.tsx",
+    "frontend/src/components/legal/LegalTableOfContents.tsx",
+    "frontend/src/components/sections/CoverPage.tsx",
+    "frontend/src/components/sections/HUD.tsx",
+    "frontend/src/components/sections/legal/PrivacyPolicy.tsx",
+    "frontend/src/components/sections/legal/Terms.tsx",
+    "frontend/src/i18n/locales/en.json",
+    "frontend/src/i18n/locales/pt.json",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

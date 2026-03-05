@@ -1,81 +1,166 @@
 {
   "kind": "build_request",
-  "title": "Unify authentication and canisters between quantumoneyar.app and quantumoney.app",
+  "title": "Critical Fixes: Single QMY Registration, 3D Coins, Responsive Legal Pages, Remove Caffeine References",
   "projectName": "Quantumoney AR",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Configure Internet Identity authentication in quantumoneyar.app to use exclusively identity.ic0.app as the identity provider — the same provider used by quantumoney.app — so that logging in with the same Internet Identity account on both domains produces the exact same Principal.",
-      "target": "frontend",
+      "text": "Enforce a single 1000 QMY registration bonus per ICP wallet principal. The backend must record each registered principal in stable storage. On registration attempt, check if the principal already exists: if yes, return a 'welcome back' response without granting QMY; if no, grant exactly 1000 QMY (100 unlocked + 900 locked over 9 months) and record the principal. This cap applies globally — a wallet that registered via quantumoney.app must not receive a second 1000 QMY grant on quantumoneyar.app. Total supply allocated for registration must not exceed 100,000,000 QMY (100k wallets × 1000 QMY).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-3"
         ],
         "quotes": [
-          "a aplicação quantumoneyar.app não está a usar os mesmos canisters do quantumoney.app, eu quero apenas o mesmo perfil para ambos os sites"
+          "UM registo por wallet ICP = 1000 QMY única vez",
+          "quantumoneyar.app OU quantumoney.app → MESMO limite",
+          "NÃO permitir double-dip (1000+1000 QMY)",
+          "Total: 100k users × 1000 QMY = 100M QMY (10% supply)"
         ]
       },
       "acceptanceCriteria": [
-        "The AuthClient in quantumoneyar.app is initialized with identityProvider set to https://identity.ic0.app",
-        "No alternative identity provider, local identity generation, or previously stored session identity is used",
-        "After login, the Principal displayed in quantumoneyar.app matches the Principal displayed in quantumoney.app for the same Internet Identity account",
-        "Any previously cached identity or localStorage session data from a different provider is cleared on app load"
+        "A wallet that has never registered receives exactly 1000 QMY (100 unlocked, 900 locked) on first registration.",
+        "A second registration attempt with the same principal returns a 'welcome back' status and grants 0 additional QMY.",
+        "The registered principal is persisted in stable storage across canister upgrades.",
+        "The total QMY distributed via registration never exceeds 100,000,000 QMY.",
+        "The backend exposes a query to check if a principal is already registered."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Point all backend canister calls in quantumoneyar.app to the same canisters used by quantumoney.app: Frontend/Website crjop-jyaaa-aaaah-atfaq-cai, Gold Paper & Docs whu4t-kiaaa-aaaah-qsc5q-cai, Governance/Treasury nemlr-6aaaa-aaaan-q32la-cai, Logic ckmsk-taaaa-aaaah-atfca-cai, QMY Ledger 5o54h-giaaa-aaaad-aentq-cai. Remove or override any hardcoded canister IDs that differ from these values.",
+      "text": "On the frontend, when a user logs in via Internet Identity and triggers the registration/welcome bonus flow: if the backend indicates the wallet is already registered, display a 'Welcome back!' modal instead of the welcome bonus modal, showing their existing QMY balance and vesting progress. If the wallet is new, show the existing welcome bonus modal. Prevent the client from calling the bonus claim endpoint more than once per session.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-3"
         ],
         "quotes": [
-          "QMY Frontend / Website: crjop-jyaaa-aaaah-atfaq-cai",
-          "QMYledger token standard: 5o54h-giaaa-aaaad-aentq-cai",
-          "QMY Governance/Treasury: nemlr-6aaaa-aaaan-q32la-cai",
-          "QMY Logic (conceitual..): ckmsk-taaaa-aaaah-atfca-cai",
-          "QMY Gold Paper & Docs: whu4t-kiaaa-aaaah-qsc5q-cai"
+          "Verificar wallet já registada → 'Bem-vindo de volta!'",
+          "NÃO permitir double-dip (1000+1000 QMY)"
         ]
       },
       "acceptanceCriteria": [
-        "All canister ID constants in the frontend configuration match the five canonical IDs listed above",
-        "No other canister IDs are used anywhere in the codebase for actor creation or API calls",
-        "The useActor hook creates actors targeting these canister IDs",
-        "Profile, XP, QMY balance, and gameplay history are loaded from these shared canisters"
+        "First-time wallet login shows the welcome bonus modal with 1000 QMY breakdown.",
+        "Returning wallet login shows a 'Welcome back!' modal displaying current QMY balance and vesting status.",
+        "No duplicate bonus claim calls are made from the frontend for an already-registered wallet.",
+        "The 'Welcome back!' message is shown in both English and Portuguese per the app's i18n system."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Clear all stale identity and session data (localStorage keys related to identity, principal, and session) on app initialization in quantumoneyar.app, then force a fresh Internet Identity login so no outdated principal from a previous misconfigured session persists.",
+      "text": "On the Home page (HUD/CoverPage), remove all static 2D QMY coin images and replace them with interactive 3D animated QMY coins using React Three Fiber and Three.js. The coins should spin/float with a gold metallic material, ambient and point lighting, and subtle continuous animation (rotation + bobbing), matching the visual style of the quantumoney.app home screen.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-3"
         ],
         "quotes": [
-          "não pode haver 2 perfis quando se efetuar login com o mesmo ID"
+          "REMOVER imagens 2D estáticas QMY",
+          "ADICIONAR moedas QMY 3D animadas (IGUAL quantumoney.app HOME)"
         ]
       },
       "acceptanceCriteria": [
-        "On first load after this change, any localStorage/sessionStorage entries tied to a previous identity session are removed",
-        "Users are prompted to log in again via Internet Identity if a stale session is detected",
-        "After re-authentication, the profile, XP, QMY balance, and history shown in quantumoneyar.app are identical to those shown in quantumoney.app for the same account"
+        "No static 2D QMY coin images remain on the Home page.",
+        "At least one 3D QMY coin is rendered using React Three Fiber with a gold metallic material.",
+        "The coin continuously rotates and bobs (floating animation) using useFrame.",
+        "The 3D canvas does not block user interaction with underlying UI elements.",
+        "The coin renders correctly on both desktop and mobile viewport sizes."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Redo the Terms & Conditions page (frontend/src/components/sections/legal/Terms.tsx) with a fully responsive layout. The new layout must use a structured, readable design with a sticky/fixed table of contents sidebar on desktop that collapses to an accordion on mobile, clear section headings with anchor links, proper typography hierarchy, and a back-to-top button. Content must remain from legalContent.ts but presentation must be fully responsive across all screen sizes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Termos e Condições → refazer layout responsivo completo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Terms & Conditions page renders correctly on mobile (320px+), tablet, and desktop viewports.",
+        "Desktop shows a sticky table of contents sidebar with section anchor links.",
+        "Mobile shows section navigation as a collapsible accordion or a dropdown.",
+        "Typography is hierarchical with clear h1/h2/h3 distinction and adequate line spacing.",
+        "A 'Back to top' button is visible when scrolling down.",
+        "All existing terms content from legalContent.ts is preserved."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Redo the Privacy Policy page (frontend/src/components/sections/legal/PrivacyPolicy.tsx) with a fully responsive layout identical in structure to the updated Terms & Conditions page (REQ-4): sticky sidebar on desktop, collapsible navigation on mobile, clear typography hierarchy, anchor links, and a back-to-top button. All existing privacy content from legalContent.ts must be preserved.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Política de Privacidade → refazer layout responsivo completo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The Privacy Policy page renders correctly on mobile (320px+), tablet, and desktop viewports.",
+        "Desktop shows a sticky table of contents sidebar.",
+        "Mobile shows collapsible section navigation.",
+        "All existing privacy content from legalContent.ts is preserved.",
+        "Layout is visually consistent with the updated Terms & Conditions page."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Remove all references to 'Caffeine' from the entire frontend codebase, including footers, HTML files, component JSX/TSX, comments, and any visible UI text. The Footer component (frontend/src/components/Footer.tsx) must be cleaned of any Caffeine mention. Also audit frontend/index.html and all other components for hidden or rendered Caffeine references and remove them. The footer should only show the social share links and 'By HTgamers' credit as currently specified.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "Remover TODAS referências 'Caffeine' (rodapés, código, HTML)",
+          "Footer limpo sem menções Caffeine"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No visible 'Caffeine' text appears anywhere in the rendered UI.",
+        "No 'Caffeine' string exists in any HTML, JSX, TSX, or comment within the frontend source.",
+        "The footer only displays social share links and 'By HTgamers'.",
+        "frontend/index.html contains no 'Caffeine' references in meta tags, comments, or content."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Perform a global audit of all frontend components, content files, and UI text to ensure the token symbol is consistently 'QMY' and not 'OMY' anywhere. Replace all occurrences of 'OMY' (when referring to the token) with 'QMY' across all source files, displayed text, and legalContent.ts.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "QMY (não OMY) em todo o site"
+        ]
+      },
+      "acceptanceCriteria": [
+        "No instance of 'OMY' (as a token name) appears in any rendered UI text.",
+        "All source files use 'QMY' consistently as the token symbol.",
+        "legalContent.ts uses 'QMY' throughout."
       ]
     }
   ],
   "constraints": [
-    "Do not change the layout, visual design, or any feature modules",
-    "Do not alter the backend/main.mo canister logic",
-    "Do not introduce any authentication method other than Internet Identity (identity.ic0.app)",
-    "The five canister IDs provided by the user must be used exactly as given — do not invent or substitute IDs"
+    "The single-registration check must use the ICP wallet principal as the unique key — not a username, email, or device identifier.",
+    "Do not change the 1000 QMY split (100 unlocked + 900 locked over 9 months) for new registrations.",
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Legal page content in legalContent.ts must not be modified — only the layout/presentation components.",
+    "The 3D coin canvas must not interfere with existing navigation or interaction elements on the Home page."
   ],
   "nonGoals": [
-    "Merging the two Caffeine projects into a single deployment",
-    "Creating or modifying any ICP canister smart contract code",
-    "Adding new UI screens or features",
-    "Implementing the QMY cryptocurrency wallet creation flow"
+    "Real cross-app shared state via API calls between quantumoneyar.app and quantumoney.app domains — the single-registration enforcement is implemented within the single backend canister.",
+    "Redesigning the overall app theme or color palette.",
+    "Adding new legal content sections beyond what already exists in legalContent.ts.",
+    "Implementing real QMY token transfers or on-chain settlement.",
+    "Modifying the AR camera, map, or gameplay mechanics."
   ],
   "imageRequirements": {
     "required": [],

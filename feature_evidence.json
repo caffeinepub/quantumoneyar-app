@@ -1,4 +1,153 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-on-the-frontend-when-a-user-logs-in-via-internet-identity-and-triggers-the-registration-welcome-bonus-flow-if-the-backend-indicates-the-wallet-is-already-registered-display-a-welcome-back-modal-instead-of-the-welcome-bonus-modal-showing-their-existing-qmy-balance-and-vesting-progress-if-the-wallet-is-new-show-the-existing-welcome-bonus-modal-prevent-the-client-from-calling-the-bonus-claim-endpoint-more-than-once-per-session",
+      "featureTitle": "On the frontend, when a user logs in via Internet Identity and triggers the registration/welcome bonus flow: if the backend indicates the wallet is already registered, display a 'Welcome back!' modal instead of the welcome bonus modal, showing their existing QMY balance and vesting progress. If the wallet is new, show the existing welcome bonus modal. Prevent the client from calling the bonus claim endpoint more than once per session.",
+      "files": [
+        "frontend/src/components/WelcomeBackModal.tsx",
+        "frontend/src/components/sections/HUD.tsx",
+        "frontend/src/i18n/locales/en.json",
+        "frontend/src/i18n/locales/pt.json"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-on-the-home-page-hud-coverpage-remove-all-static-2d-qmy-coin-images-and-replace-them-with-interactive-3d-animated-qmy-coins-using-react-three-fiber-and-three-js-the-coins-should-spin-float-with-a-gold-metallic-material-ambient-and-point-lighting-and-subtle-continuous-animation-rotation-bobbing-matching-the-visual-style-of-the-quantumoney-app-home-screen",
+      "featureTitle": "On the Home page (HUD/CoverPage), remove all static 2D QMY coin images and replace them with interactive 3D animated QMY coins using React Three Fiber and Three.js. The coins should spin/float with a gold metallic material, ambient and point lighting, and subtle continuous animation (rotation + bobbing), matching the visual style of the quantumoney.app home screen.",
+      "files": [
+        "frontend/src/components/3d/QMY3DCoin.tsx",
+        "frontend/src/components/sections/CoverPage.tsx",
+        "frontend/src/components/sections/HUD.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-redo-the-terms-conditions-page-frontend-src-components-sections-legal-terms-tsx-with-a-fully-responsive-layout-the-new-layout-must-use-a-structured-readable-design-with-a-sticky-fixed-table-of-contents-sidebar-on-desktop-that-collapses-to-an-accordion-on-mobile-clear-section-headings-with-anchor-links-proper-typography-hierarchy-and-a-back-to-top-button-content-must-remain-from-legalcontent-ts-but-presentation-must-be-fully-responsive-across-all-screen-sizes",
+      "featureTitle": "Redo the Terms & Conditions page (frontend/src/components/sections/legal/Terms.tsx) with a fully responsive layout. The new layout must use a structured, readable design with a sticky/fixed table of contents sidebar on desktop that collapses to an accordion on mobile, clear section headings with anchor links, proper typography hierarchy, and a back-to-top button. Content must remain from legalContent.ts but presentation must be fully responsive across all screen sizes.",
+      "files": [
+        "frontend/src/components/legal/BackToTopButton.tsx",
+        "frontend/src/components/legal/LegalTableOfContents.tsx",
+        "frontend/src/components/sections/legal/Terms.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-redo-the-privacy-policy-page-frontend-src-components-sections-legal-privacypolicy-tsx-with-a-fully-responsive-layout-identical-in-structure-to-the-updated-terms-conditions-page-req-4-sticky-sidebar-on-desktop-collapsible-navigation-on-mobile-clear-typography-hierarchy-anchor-links-and-a-back-to-top-button-all-existing-privacy-content-from-legalcontent-ts-must-be-preserved",
+      "featureTitle": "Redo the Privacy Policy page (frontend/src/components/sections/legal/PrivacyPolicy.tsx) with a fully responsive layout identical in structure to the updated Terms & Conditions page (REQ-4): sticky sidebar on desktop, collapsible navigation on mobile, clear typography hierarchy, anchor links, and a back-to-top button. All existing privacy content from legalContent.ts must be preserved.",
+      "files": [
+        "frontend/src/components/sections/legal/PrivacyPolicy.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-remove-all-references-to-caffeine-from-the-entire-frontend-codebase-including-footers-html-files-component-jsx-tsx-comments-and-any-visible-ui-text-the-footer-component-frontend-src-components-footer-tsx-must-be-cleaned-of-any-caffeine-mention-also-audit-frontend-index-html-and-all-other-components-for-hidden-or-rendered-caffeine-references-and-remove-them-the-footer-should-only-show-the-social-share-links-and-by-htgamers-credit-as-currently-specified",
+      "featureTitle": "Remove all references to 'Caffeine' from the entire frontend codebase, including footers, HTML files, component JSX/TSX, comments, and any visible UI text. The Footer component (frontend/src/components/Footer.tsx) must be cleaned of any Caffeine mention. Also audit frontend/index.html and all other components for hidden or rendered Caffeine references and remove them. The footer should only show the social share links and 'By HTgamers' credit as currently specified.",
+      "files": [
+        "frontend/index.html",
+        "frontend/src/components/Footer.tsx"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-perform-a-global-audit-of-all-frontend-components-content-files-and-ui-text-to-ensure-the-token-symbol-is-consistently-qmy-and-not-omy-anywhere-replace-all-occurrences-of-omy-when-referring-to-the-token-with-qmy-across-all-source-files-displayed-text-and-legalcontent-ts",
+      "featureTitle": "Perform a global audit of all frontend components, content files, and UI text to ensure the token symbol is consistently 'QMY' and not 'OMY' anywhere. Replace all occurrences of 'OMY' (when referring to the token) with 'QMY' across all source files, displayed text, and legalContent.ts.",
+      "files": [
+        "frontend/src/components/sections/HUD.tsx",
+        "frontend/src/i18n/locales/en.json",
+        "frontend/src/i18n/locales/pt.json"
+      ],
+      "components": [
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "authorization@4.0.0",
+        "qr-code@1.0.0",
+        "camera@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
 }
